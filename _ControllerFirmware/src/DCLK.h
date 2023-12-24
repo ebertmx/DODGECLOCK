@@ -68,7 +68,9 @@ struct dclk_cb {
  */
 int dclk_init(struct dclk_cb *callbacks);
 
-void start_adv_work(void);
+void start_advertising(void);
+
+int start_pairing(void);
 
 /** @brief Send the button state as notification.
  *

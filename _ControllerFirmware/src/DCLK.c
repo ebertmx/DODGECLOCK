@@ -26,8 +26,6 @@
 
 #include "DCLK.h"
 
-
-
 LOG_MODULE_DECLARE(DCLK_app);
 
 static bool notify_state_enabled;
@@ -38,7 +36,6 @@ static struct dclk_cb dclk_cb;
 
 #define DEVICE_NAME CONFIG_BT_DEVICE_NAME
 #define DEVICE_NAME_LEN (sizeof(DEVICE_NAME) - 1)
-
 
 /* STEP 3.2.1 - Define advertising parameter for no Accept List */
 #define BT_LE_ADV_CONN_NO_ACCEPT_LIST                                   \
@@ -162,7 +159,7 @@ void advertise_with_acceptlist(struct k_work *work)
 }
 
 K_WORK_DEFINE(advertise_acceptlist_work, advertise_with_acceptlist);
-K_WORK_DEFINE(initiate_pairing, initiate_pair);
+
 
 static void on_connected(struct bt_conn *conn, uint8_t err)
 {
@@ -202,6 +199,7 @@ struct bt_conn_cb connection_callbacks = {
 	.disconnected = on_disconnected,
 	.security_changed = on_security_changed,
 };
+
 static void auth_passkey_display(struct bt_conn *conn, unsigned int passkey)
 {
 	char addr[BT_ADDR_LE_STR_LEN];
@@ -224,8 +222,6 @@ static struct bt_conn_auth_cb conn_auth_callbacks = {
 	.passkey_display = auth_passkey_display,
 	.cancel = auth_cancel,
 };
-
-
 
 /* state configuration change callback function */
 static void dclk_ccc_state_cfg_changed(const struct bt_gatt_attr *attr, uint16_t value)
@@ -280,27 +276,22 @@ BT_GATT_SERVICE_DEFINE(
 	dclk_svc, BT_GATT_PRIMARY_SERVICE(BT_UUID_DCLK),
 	/*Button characteristic declaration */
 	BT_GATT_CHARACTERISTIC(BT_UUID_DCLK_STATE, BT_GATT_CHRC_READ | BT_GATT_CHRC_NOTIFY,
-						   BT_GATT_PERM_READ, read_state, NULL, &state),
+						   BT_GATT_PERM_READ_ENCRYPT, read_state, NULL, &state),
 	/* Client Characteristic Configuration Descriptor */
-	BT_GATT_CCC(dclk_ccc_state_cfg_changed, BT_GATT_PERM_READ | BT_GATT_PERM_WRITE),
+	BT_GATT_CCC(dclk_ccc_state_cfg_changed, BT_GATT_PERM_READ_ENCRYPT | BT_GATT_PERM_WRITE_ENCRYPT),
 
 	BT_GATT_CHARACTERISTIC(BT_UUID_DCLK_CLOCK, BT_GATT_CHRC_READ | BT_GATT_CHRC_NOTIFY,
-						   BT_GATT_PERM_READ, read_clock, NULL, &clock),
+						   BT_GATT_PERM_READ_ENCRYPT, read_clock, NULL, &clock),
 
-	BT_GATT_CCC(dclk_ccc_clock_cfg_changed, BT_GATT_PERM_READ | BT_GATT_PERM_WRITE),
+	BT_GATT_CCC(dclk_ccc_clock_cfg_changed, BT_GATT_PERM_READ_ENCRYPT | BT_GATT_PERM_WRITE_ENCRYPT),
 
 );
 
 /* A function to register application callbacks for the LED and Button characteristics  */
 int dclk_init(struct dclk_cb *callbacks)
 {
+	int err;
 
-	int err = bt_conn_auth_cb_register(&conn_auth_callbacks);
-	if (err)
-	{
-		LOG_INF("Failed to register authorization callbacks.\n");
-		return;
-	}
 	bt_conn_cb_register(&connection_callbacks);
 
 	err = bt_enable(NULL);
@@ -319,9 +310,22 @@ int dclk_init(struct dclk_cb *callbacks)
 	return 0;
 }
 
-void start_adv_work(void)
+void start_advertising(void)
 {
-		k_work_submit(&advertise_acceptlist_work);
+	k_work_submit(&advertise_acceptlist_work);
+}
+
+int start_pairing(void)
+{
+	int err = bt_unpair(BT_ID_DEFAULT, BT_ADDR_LE_ANY);
+	if (err)
+	{
+		LOG_INF("Cannot delete bond (err: %d)\n", err);
+	}
+	else
+	{
+		LOG_INF("Bond deleted succesfully \n");
+	}
 }
 
 int dclk_send_state_notify(uint8_t state)

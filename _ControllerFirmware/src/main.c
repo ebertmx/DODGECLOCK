@@ -45,10 +45,27 @@ static uint8_t app_state_cb(void)
 	return get_dstate();
 }
 
+
+
 static struct dclk_cb app_callbacks = {
 	.clock_cb = app_clock_cb,
 	.state_cb = app_state_cb,
 };
+
+static uint8_t pair_cb(void)
+{
+	start_pairing();
+}
+static uint8_t user_cb(void)
+{
+
+}
+
+static struct interface_cb inter_callbacks = {
+	.pair_cb = pair_cb,
+	.user_cb = user_cb,
+};
+
 
 void update_dclock(void)
 {
@@ -68,7 +85,7 @@ void main(void)
 
 	LOG_INF("Starting DCLK Controller \n");
 
-	err = interface_init();
+	err = interface_init(&inter_callbacks);
 	if (err)
 	{
 		printk("Interface init failed (err %d)\n", err);
@@ -84,7 +101,7 @@ void main(void)
 	}
 	LOG_INF("Bluetooth initialized\n");
 
-	start_adv_work();
+	start_advertising();
 
 	for (;;)
 	{

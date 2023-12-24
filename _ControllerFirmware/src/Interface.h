@@ -14,6 +14,21 @@ extern "C" {
 
 #include <zephyr/types.h>
 
+/** @brief Callback type for when an LED state change is received. */
+typedef uint8_t (*pair_cb_t)(void);
+
+/** @brief Callback type for when the button state is pulled. */
+typedef uint8_t (*user_cb_t)(void);
+
+/** @brief Callback struct used by the LBS Service. */
+struct interface_cb {
+	/** LED state change callback. */
+	pair_cb_t pair_cb;
+	/** Button read callback. */
+	user_cb_t user_cb;
+};
+
+
 
 /** @brief Initialize the LBS Service.
  *
@@ -28,7 +43,7 @@ extern "C" {
  * @retval 0 If the operation was successful.
  *           Otherwise, a (negative) error code is returned.
  */
-int interface_init(void);
+int interface_init(struct interface_cb *app_cb);
 
 
 /** @brief Send the button state as notification.
