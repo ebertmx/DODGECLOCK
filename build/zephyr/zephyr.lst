@@ -28481,7 +28481,213 @@ static uint8_t app_state_cb(void)
    1179e:	b087      	sub	sp, #28
    117a0:	af00      	add	r7, sp, #0
 	if (err)
+<<<<<<< Updated upstream:build/zephyr/zephyr.lst
    117a2:	b189      	cbz	r1, 117c8 <on_connected+0x2c>
+=======
+   1170e:	b128      	cbz	r0, 1171c <main+0x30>
+	{
+		printk("Interface init failed (err %d)\n", err);
+   11710:	4813      	ldr	r0, [pc, #76]	; (11760 <main+0x74>)
+	for (;;)
+	{
+		//dk_set_led(RUN_STATUS_LED, (++blink_status) % 2);
+		k_sleep(K_MSEC(RUN_LED_BLINK_INTERVAL));
+	}
+}
+   11712:	b006      	add	sp, #24
+   11714:	e8bd 4010 	ldmia.w	sp!, {r4, lr}
+		printk("Failed to init LBS (err:%d)\n", err);
+   11718:	f015 bf3f 	b.w	2759a <printk>
+	err= bt_unpair(BT_ID_DEFAULT,BT_ADDR_LE_ANY);
+   1171c:	4911      	ldr	r1, [pc, #68]	; (11764 <main+0x78>)
+   1171e:	f005 fb87 	bl	16e30 <bt_unpair>
+	err = dclk_init(&app_callbacks);
+   11722:	4811      	ldr	r0, [pc, #68]	; (11768 <main+0x7c>)
+   11724:	f000 fa06 	bl	11b34 <dclk_init>
+	if (err)
+   11728:	4603      	mov	r3, r0
+   1172a:	b110      	cbz	r0, 11732 <main+0x46>
+		printk("Failed to init LBS (err:%d)\n", err);
+   1172c:	4601      	mov	r1, r0
+   1172e:	480f      	ldr	r0, [pc, #60]	; (1176c <main+0x80>)
+   11730:	e7ef      	b.n	11712 <main+0x26>
+	LOG_INF("Bluetooth initialized\n");
+   11732:	4a0f      	ldr	r2, [pc, #60]	; (11770 <main+0x84>)
+   11734:	e9cd 4204 	strd	r4, r2, [sp, #16]
+   11738:	4807      	ldr	r0, [pc, #28]	; (11758 <main+0x6c>)
+   1173a:	aa04      	add	r2, sp, #16
+   1173c:	f44f 5186 	mov.w	r1, #4288	; 0x10c0
+   11740:	f002 fa40 	bl	13bc4 <z_impl_z_log_msg_static_create>
+	start_advertising();
+   11744:	f000 fa22 	bl	11b8c <start_advertising>
+	return z_impl_k_sleep(timeout);
+   11748:	2100      	movs	r1, #0
+   1174a:	f44f 4000 	mov.w	r0, #32768	; 0x8000
+   1174e:	f012 fae3 	bl	23d18 <z_impl_k_sleep>
+	for (;;)
+   11752:	e7f9      	b.n	11748 <main+0x5c>
+   11754:	0002d7ca 	.word	0x0002d7ca
+   11758:	0002cad4 	.word	0x0002cad4
+   1175c:	20000540 	.word	0x20000540
+   11760:	0002d7e5 	.word	0x0002d7e5
+   11764:	0002e38f 	.word	0x0002e38f
+   11768:	20000548 	.word	0x20000548
+   1176c:	0002d805 	.word	0x0002d805
+   11770:	0002d822 	.word	0x0002d822
+
+00011774 <dclk_ccc_state_cfg_changed>:
+
+
+/* state configuration change callback function */
+static void dclk_ccc_state_cfg_changed(const struct bt_gatt_attr *attr, uint16_t value)
+{
+	notify_state_enabled = (value == BT_GATT_CCC_NOTIFY);
+   11774:	1e4b      	subs	r3, r1, #1
+   11776:	4259      	negs	r1, r3
+   11778:	4159      	adcs	r1, r3
+   1177a:	4b01      	ldr	r3, [pc, #4]	; (11780 <dclk_ccc_state_cfg_changed+0xc>)
+   1177c:	7019      	strb	r1, [r3, #0]
+}
+   1177e:	4770      	bx	lr
+   11780:	20004566 	.word	0x20004566
+
+00011784 <dclk_ccc_clock_cfg_changed>:
+
+/* clock configuration change callback function */
+static void dclk_ccc_clock_cfg_changed(const struct bt_gatt_attr *attr, uint16_t value)
+{
+	notify_clock_enabled = (value == BT_GATT_CCC_NOTIFY);
+   11784:	1e4b      	subs	r3, r1, #1
+   11786:	4259      	negs	r1, r3
+   11788:	4159      	adcs	r1, r3
+   1178a:	4b01      	ldr	r3, [pc, #4]	; (11790 <dclk_ccc_clock_cfg_changed+0xc>)
+   1178c:	7019      	strb	r1, [r3, #0]
+}
+   1178e:	4770      	bx	lr
+   11790:	20004565 	.word	0x20004565
+
+00011794 <read_clock>:
+	return 0;
+}
+
+static ssize_t read_clock(struct bt_conn *conn, const struct bt_gatt_attr *attr, void *buf,
+						  uint16_t len, uint16_t offset)
+{
+   11794:	e92d 41ff 	stmdb	sp!, {r0, r1, r2, r3, r4, r5, r6, r7, r8, lr}
+   11798:	461f      	mov	r7, r3
+	// get a pointer to state which is passed in the BT_GATT_CHARACTERISTIC() and stored in attr->user_data
+	const char *value = attr->user_data;
+
+	LOG_DBG("Attribute read, handle: %u, conn: %p", attr->handle, (void *)conn);
+
+	if (dclk_cb.clock_cb)
+   1179a:	4b0d      	ldr	r3, [pc, #52]	; (117d0 <read_clock+0x3c>)
+{
+   1179c:	4605      	mov	r5, r0
+	if (dclk_cb.clock_cb)
+   1179e:	6818      	ldr	r0, [r3, #0]
+{
+   117a0:	460c      	mov	r4, r1
+   117a2:	4616      	mov	r6, r2
+	if (dclk_cb.clock_cb)
+   117a4:	b180      	cbz	r0, 117c8 <read_clock+0x34>
+	const char *value = attr->user_data;
+   117a6:	f8d1 800c 	ldr.w	r8, [r1, #12]
+	{
+		// Call the application callback function to update the get the current value of the button
+		clock = dclk_cb.clock_cb();
+   117aa:	4780      	blx	r0
+   117ac:	4b09      	ldr	r3, [pc, #36]	; (117d4 <read_clock+0x40>)
+   117ae:	6018      	str	r0, [r3, #0]
+		return bt_gatt_attr_read(conn, attr, buf, len, offset, value, sizeof(*value));
+   117b0:	2301      	movs	r3, #1
+   117b2:	e9cd 8301 	strd	r8, r3, [sp, #4]
+   117b6:	f8bd 3028 	ldrh.w	r3, [sp, #40]	; 0x28
+   117ba:	9300      	str	r3, [sp, #0]
+   117bc:	4632      	mov	r2, r6
+   117be:	463b      	mov	r3, r7
+   117c0:	4621      	mov	r1, r4
+   117c2:	4628      	mov	r0, r5
+   117c4:	f018 fffa 	bl	2a7bc <bt_gatt_attr_read>
+	}
+
+	return 0;
+}
+   117c8:	b004      	add	sp, #16
+   117ca:	e8bd 81f0 	ldmia.w	sp!, {r4, r5, r6, r7, r8, pc}
+   117ce:	bf00      	nop
+   117d0:	20002e10 	.word	0x20002e10
+   117d4:	20002e18 	.word	0x20002e18
+
+000117d8 <read_state>:
+{
+   117d8:	e92d 41ff 	stmdb	sp!, {r0, r1, r2, r3, r4, r5, r6, r7, r8, lr}
+   117dc:	461f      	mov	r7, r3
+	if (dclk_cb.state_cb)
+   117de:	4b0d      	ldr	r3, [pc, #52]	; (11814 <read_state+0x3c>)
+{
+   117e0:	4605      	mov	r5, r0
+	if (dclk_cb.state_cb)
+   117e2:	6858      	ldr	r0, [r3, #4]
+{
+   117e4:	460c      	mov	r4, r1
+   117e6:	4616      	mov	r6, r2
+	if (dclk_cb.state_cb)
+   117e8:	b180      	cbz	r0, 1180c <read_state+0x34>
+	const char *value = attr->user_data;
+   117ea:	f8d1 800c 	ldr.w	r8, [r1, #12]
+		state = dclk_cb.state_cb();
+   117ee:	4780      	blx	r0
+   117f0:	4b09      	ldr	r3, [pc, #36]	; (11818 <read_state+0x40>)
+   117f2:	7018      	strb	r0, [r3, #0]
+		return bt_gatt_attr_read(conn, attr, buf, len, offset, value, sizeof(*value));
+   117f4:	2301      	movs	r3, #1
+   117f6:	e9cd 8301 	strd	r8, r3, [sp, #4]
+   117fa:	f8bd 3028 	ldrh.w	r3, [sp, #40]	; 0x28
+   117fe:	9300      	str	r3, [sp, #0]
+   11800:	4632      	mov	r2, r6
+   11802:	463b      	mov	r3, r7
+   11804:	4621      	mov	r1, r4
+   11806:	4628      	mov	r0, r5
+   11808:	f018 ffd8 	bl	2a7bc <bt_gatt_attr_read>
+}
+   1180c:	b004      	add	sp, #16
+   1180e:	e8bd 81f0 	ldmia.w	sp!, {r4, r5, r6, r7, r8, pc}
+   11812:	bf00      	nop
+   11814:	20002e10 	.word	0x20002e10
+   11818:	20004564 	.word	0x20004564
+
+0001181c <on_disconnected>:
+{
+   1181c:	b598      	push	{r3, r4, r7, lr}
+   1181e:	af00      	add	r7, sp, #0
+	LOG_INF("Disconnected (reason %u)\n", reason);
+   11820:	466c      	mov	r4, sp
+   11822:	b088      	sub	sp, #32
+   11824:	466a      	mov	r2, sp
+   11826:	4b08      	ldr	r3, [pc, #32]	; (11848 <on_disconnected+0x2c>)
+   11828:	4808      	ldr	r0, [pc, #32]	; (1184c <on_disconnected+0x30>)
+   1182a:	e9c2 3105 	strd	r3, r1, [r2, #20]
+   1182e:	2303      	movs	r3, #3
+   11830:	f842 3f10 	str.w	r3, [r2, #16]!
+   11834:	f44f 51c6 	mov.w	r1, #6336	; 0x18c0
+   11838:	f015 fd9c 	bl	27374 <z_log_msg_static_create.constprop.0>
+	k_work_submit(&advertise_acceptlist_work);
+   1183c:	4804      	ldr	r0, [pc, #16]	; (11850 <on_disconnected+0x34>)
+   1183e:	46a5      	mov	sp, r4
+   11840:	f011 ff06 	bl	23650 <k_work_submit>
+}
+   11844:	46bd      	mov	sp, r7
+   11846:	bd98      	pop	{r3, r4, r7, pc}
+   11848:	0002d850 	.word	0x0002d850
+   1184c:	0002cad4 	.word	0x0002cad4
+   11850:	200005ac 	.word	0x200005ac
+
+00011854 <on_connected.part.0>:
+static void on_connected(struct bt_conn *conn, uint8_t err)
+   11854:	b580      	push	{r7, lr}
+   11856:	af00      	add	r7, sp, #0
+>>>>>>> Stashed changes:_ControllerFirmware/build/zephyr/zephyr.lst
 		LOG_INF("Connection failed (err %u)\n", err);
    117a4:	466c      	mov	r4, sp
    117a6:	b088      	sub	sp, #32
@@ -28853,6 +29059,7 @@ static inline int bt_addr_le_to_str(const bt_addr_le_t *addr, char *str,
    11a7e:	46bd      	mov	sp, r7
    11a80:	bdf0      	pop	{r4, r5, r6, r7, pc}
 		LOG_INF("Security failed: %s level %u err %d\n", addr, level, err);
+<<<<<<< Updated upstream:build/zephyr/zephyr.lst
    11a82:	466e      	mov	r6, sp
    11a84:	b08a      	sub	sp, #40	; 0x28
    11a86:	466b      	mov	r3, sp
@@ -28868,6 +29075,69 @@ static inline int bt_addr_le_to_str(const bt_addr_le_t *addr, char *str,
    11aa2:	f44f 5133 	mov.w	r1, #11456	; 0x2cc0
    11aa6:	f015 fcad 	bl	27404 <z_log_msg_static_create.constprop.0>
    11aaa:	46b5      	mov	sp, r6
+=======
+   11ae6:	b08a      	sub	sp, #40	; 0x28
+   11ae8:	aa06      	add	r2, sp, #24
+   11aea:	4b10      	ldr	r3, [pc, #64]	; (11b2c <on_security_changed+0xe4>)
+   11aec:	e9c2 3405 	strd	r3, r4, [r2, #20]
+   11af0:	f44f 7300 	mov.w	r3, #512	; 0x200
+   11af4:	8493      	strh	r3, [r2, #36]	; 0x24
+   11af6:	4b0e      	ldr	r3, [pc, #56]	; (11b30 <on_security_changed+0xe8>)
+   11af8:	e9c2 9807 	strd	r9, r8, [r2, #28]
+   11afc:	f44f 5133 	mov.w	r1, #11456	; 0x2cc0
+   11b00:	f842 3f10 	str.w	r3, [r2, #16]!
+   11b04:	e7db      	b.n	11abe <on_security_changed+0x76>
+   11b06:	bf00      	nop
+   11b08:	0002d9be 	.word	0x0002d9be
+   11b0c:	0002d9e0 	.word	0x0002d9e0
+   11b10:	0002da03 	.word	0x0002da03
+   11b14:	01000004 	.word	0x01000004
+   11b18:	0002cad4 	.word	0x0002cad4
+   11b1c:	0002d9c5 	.word	0x0002d9c5
+   11b20:	0002d9cc 	.word	0x0002d9cc
+   11b24:	0002d9d6 	.word	0x0002d9d6
+   11b28:	0002fd6e 	.word	0x0002fd6e
+   11b2c:	0002da22 	.word	0x0002da22
+   11b30:	01000005 	.word	0x01000005
+
+00011b34 <dclk_init>:
+
+);
+
+/* A function to register application callbacks for the LED and Button characteristics  */
+int dclk_init(struct dclk_cb *callbacks)
+{
+   11b34:	b598      	push	{r3, r4, r7, lr}
+   11b36:	4604      	mov	r4, r0
+   11b38:	af00      	add	r7, sp, #0
+	int err;
+
+	bt_conn_cb_register(&connection_callbacks);
+   11b3a:	4810      	ldr	r0, [pc, #64]	; (11b7c <dclk_init+0x48>)
+   11b3c:	f007 fd6c 	bl	19618 <bt_conn_cb_register>
+
+	err = bt_enable(NULL);
+   11b40:	2000      	movs	r0, #0
+   11b42:	f005 fd9d 	bl	17680 <bt_enable>
+	if (err)
+   11b46:	b170      	cbz	r0, 11b66 <dclk_init+0x32>
+	{
+		LOG_ERR("Bluetooth init failed (err %d)\n", err);
+   11b48:	b088      	sub	sp, #32
+   11b4a:	466a      	mov	r2, sp
+   11b4c:	4b0c      	ldr	r3, [pc, #48]	; (11b80 <dclk_init+0x4c>)
+   11b4e:	e9c2 3005 	strd	r3, r0, [r2, #20]
+   11b52:	2303      	movs	r3, #3
+   11b54:	480b      	ldr	r0, [pc, #44]	; (11b84 <dclk_init+0x50>)
+   11b56:	f842 3f10 	str.w	r3, [r2, #16]!
+   11b5a:	f44f 51c2 	mov.w	r1, #6208	; 0x1840
+   11b5e:	f015 fc09 	bl	27374 <z_log_msg_static_create.constprop.0>
+		dclk_cb.clock_cb = callbacks->clock_cb;
+		dclk_cb.state_cb = callbacks->state_cb;
+	}
+
+	return 0;
+>>>>>>> Stashed changes:_ControllerFirmware/build/zephyr/zephyr.lst
 }
    11aac:	e7e6      	b.n	11a7c <on_security_changed+0x3c>
    11aae:	bf00      	nop
