@@ -23,10 +23,11 @@
 
 #include <zephyr/settings/settings.h>
 
-
-
-
 #include <zephyr/logging/log.h>
+
+#include "DCLK_client.h"
+
+const unsigned int passkey = 123456;
 
 #define LOG_MODULE_NAME DCLK_DISPLAY
 LOG_MODULE_REGISTER(LOG_MODULE_NAME);
@@ -34,13 +35,28 @@ LOG_MODULE_REGISTER(LOG_MODULE_NAME);
 #define BT_UUID_DCLK_VAL BT_UUID_128_ENCODE(0x00001553, 0x1212, 0xefde, 0x1523, 0x785feabcd123)
 
 static struct bt_conn *default_conn;
+struct bt_DCLK_client DCLK_client;
+
+static void unsubscribed(struct bt_DCLK_client *DCLK)
+{
+	LOG_INF("unsubscribe\n");
+}
+
+static uint8_t ble_data_received(struct bt_DCLK_client *nus,
+								 const uint8_t *data, uint16_t len)
+{
+	LOG_INF("BLE REC\n");
+	return 0;
+}
 
 static void discovery_complete(struct bt_gatt_dm *dm,
 							   void *context)
 {
 	LOG_INF("Service discovery completed");
-
+	struct bt_DCLK_client *DCLK = context;
 	bt_gatt_dm_data_print(dm);
+	bt_DCLK_handles_assign(dm, DCLK);
+	bt_DCLK_subscribe_receive(DCLK);
 
 	bt_gatt_dm_data_release(dm);
 }
@@ -74,9 +90,9 @@ static void gatt_discover(struct bt_conn *conn)
 	}
 
 	err = bt_gatt_dm_start(conn,
-						   NULL,
+						   BT_UUID_DCLK,
 						   &discovery_cb,
-						   NULL);
+						   &DCLK_client);
 	if (err)
 	{
 		LOG_ERR("could not start the discovery procedure, error "
@@ -134,8 +150,9 @@ static void connected(struct bt_conn *conn, uint8_t conn_err)
 	{
 		LOG_WRN("MTU exchange failed (err %d)", err);
 	}
+	LOG_INF("Security %d", bt_conn_get_security(conn));
 
-	err = bt_conn_set_security(conn, BT_SECURITY_L2);
+	err = bt_conn_set_security(conn, BT_SECURITY_L4);
 	if (err)
 	{
 		LOG_WRN("Failed to set security: %d", err);
@@ -254,6 +271,67 @@ static int scan_init(void)
 	return err;
 }
 
+static void pairing_complete(struct bt_conn *conn, bool bonded)
+{
+	char addr[BT_ADDR_LE_STR_LEN];
+
+	bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
+
+	LOG_INF("Pairing completed: %s, bonded: %d", addr, bonded);
+}
+
+static void pairing_failed(struct bt_conn *conn, enum bt_security_err reason)
+{
+	char addr[BT_ADDR_LE_STR_LEN];
+
+	bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
+
+	LOG_WRN("Pairing failed conn: %s, reason %d", addr, reason);
+}
+
+static struct bt_conn_auth_info_cb conn_auth_info_callbacks = {
+	.pairing_complete = pairing_complete,
+	.pairing_failed = pairing_failed};
+
+static void auth_pairing(struct bt_conn *conn)
+{
+	char addr[BT_ADDR_LE_STR_LEN];
+	bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
+	int err = bt_conn_auth_pairing_confirm(conn);
+	printk("Pairing Authorized %d: %s\n", err, addr);
+}
+
+static void auth_cancel(struct bt_conn *conn)
+{
+	char addr[BT_ADDR_LE_STR_LEN];
+
+	bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
+
+	printk("Pairing cancelled: %s\n", addr);
+}
+
+static void passkey_confirm(struct bt_conn *conn, unsigned int passkey)
+{
+	// Display the passkey on your device's interface for confirmation
+	printk("Passkey for confirmation: %06u\n", passkey);
+
+	// You might implement a mechanism to confirm the passkey here,
+	// for example, through a user interface or automatic confirmation.
+
+	// If the passkey is confirmed, you can respond with:
+	bt_conn_auth_passkey_confirm(conn);
+
+	// If the passkey is rejected, you can respond with:
+	// bt_conn_auth_cancel(conn);
+}
+
+static struct bt_conn_auth_cb auth_cb_display = {
+	.passkey_display = NULL,			// auth_passkey_display,
+	.passkey_confirm = passkey_confirm, // auth_passkey_confirm,
+	.cancel = auth_cancel,
+	.pairing_confirm = auth_pairing, // pairing_confirm,
+};
+
 int bluetooth_init(void)
 {
 
@@ -267,6 +345,8 @@ int bluetooth_init(void)
 	}
 
 	LOG_INF("Bluetooth initialized");
+	bt_passkey_set(passkey);
+	bt_conn_auth_cb_register(&auth_cb_display);
 
 	if (IS_ENABLED(CONFIG_SETTINGS))
 	{

@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"nrf-connect.applications": [
+			"${workspaceFolder}\\_ControllerFirmware",
+			"${workspaceFolder}\\_DisplayFirmware"
+		],
+		"files.associations": {
+			"dclk_client.h": "c"
+		}
+	}
+}

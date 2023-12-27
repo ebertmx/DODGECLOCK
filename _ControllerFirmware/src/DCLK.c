@@ -34,6 +34,8 @@ static uint8_t state;
 static int32_t clock;
 static struct dclk_cb dclk_cb;
 
+const unsigned int passkey = 123456;
+
 #define DEVICE_NAME CONFIG_BT_DEVICE_NAME
 #define DEVICE_NAME_LEN (sizeof(DEVICE_NAME) - 1)
 
@@ -160,7 +162,6 @@ void advertise_with_acceptlist(struct k_work *work)
 
 K_WORK_DEFINE(advertise_acceptlist_work, advertise_with_acceptlist);
 
-
 static void on_connected(struct bt_conn *conn, uint8_t err)
 {
 	if (err)
@@ -199,7 +200,6 @@ struct bt_conn_cb connection_callbacks = {
 	.disconnected = on_disconnected,
 	.security_changed = on_security_changed,
 };
-
 
 /* state configuration change callback function */
 static void dclk_ccc_state_cfg_changed(const struct bt_gatt_attr *attr, uint16_t value)
@@ -249,19 +249,65 @@ static ssize_t read_clock(struct bt_conn *conn, const struct bt_gatt_attr *attr,
 	return 0;
 }
 
+static void auth_pairing(struct bt_conn *conn)
+{
+	char addr[BT_ADDR_LE_STR_LEN];
+	bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
+	int err = bt_conn_auth_pairing_confirm(conn);
+	printk("Pairing Authorized %d: %s\n", err, addr);
+}
+
+static void auth_cancel(struct bt_conn *conn)
+{
+	char addr[BT_ADDR_LE_STR_LEN];
+
+	bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
+
+	printk("Pairing cancelled: %s\n", addr);
+}
+
+static void passkey_confirm(struct bt_conn *conn, unsigned int passkey)
+{
+	// Display the passkey on your device's interface for confirmation
+	printk("Passkey for confirmation: %06u\n", passkey);
+
+	// You might implement a mechanism to confirm the passkey here,
+	// for example, through a user interface or automatic confirmation.
+
+	// If the passkey is confirmed, you can respond with:
+	bt_conn_auth_passkey_confirm(conn);
+
+	// If the passkey is rejected, you can respond with:
+	// bt_conn_auth_cancel(conn);
+}
+
+static void enter_passkey(struct bt_conn *conn)
+{
+	LOG_INF("Sending entry passkey = %d", passkey);
+	bt_conn_auth_passkey_entry(conn, passkey);
+}
+
+static struct bt_conn_auth_cb auth_cb_display = {
+	.passkey_display = NULL, // auth_passkey_display,
+	.passkey_confirm = NULL, // auth_passkey_confirm,
+	.passkey_entry = enter_passkey,
+	.cancel = auth_cancel,
+	.pairing_confirm = auth_pairing, // pairing_confirm,
+};
+
 /* DCLK Service Declaration */
 BT_GATT_SERVICE_DEFINE(
 	dclk_svc, BT_GATT_PRIMARY_SERVICE(BT_UUID_DCLK),
 	/*Button characteristic declaration */
 	BT_GATT_CHARACTERISTIC(BT_UUID_DCLK_STATE, BT_GATT_CHRC_READ | BT_GATT_CHRC_NOTIFY,
-						   BT_GATT_PERM_READ_ENCRYPT, read_state, NULL, &state),
+						   BT_GATT_PERM_READ, read_state, NULL, &state),
 	/* Client Characteristic Configuration Descriptor */
-	BT_GATT_CCC(dclk_ccc_state_cfg_changed, BT_GATT_PERM_READ_ENCRYPT | BT_GATT_PERM_WRITE_ENCRYPT),
+	BT_GATT_CCC(dclk_ccc_state_cfg_changed, BT_GATT_PERM_READ | BT_GATT_PERM_WRITE),
 
 	BT_GATT_CHARACTERISTIC(BT_UUID_DCLK_CLOCK, BT_GATT_CHRC_READ | BT_GATT_CHRC_NOTIFY,
-						   BT_GATT_PERM_READ_ENCRYPT, read_clock, NULL, &clock),
+						   BT_GATT_PERM_READ, read_clock, NULL, &clock),
 
-	BT_GATT_CCC(dclk_ccc_clock_cfg_changed, BT_GATT_PERM_READ_ENCRYPT | BT_GATT_PERM_WRITE_ENCRYPT),
+	BT_GATT_CCC(dclk_ccc_clock_cfg_changed, BT_GATT_PERM_READ | BT_GATT_PERM_WRITE),
 
 );
 
@@ -271,6 +317,7 @@ int dclk_init(struct dclk_cb *callbacks)
 	int err;
 
 	bt_conn_cb_register(&connection_callbacks);
+	bt_conn_auth_cb_register(&auth_cb_display);
 
 	err = bt_enable(NULL);
 	if (err)
@@ -278,6 +325,8 @@ int dclk_init(struct dclk_cb *callbacks)
 		LOG_ERR("Bluetooth init failed (err %d)\n", err);
 		return;
 	}
+
+	bt_passkey_set(passkey);
 	settings_load();
 	if (callbacks)
 	{

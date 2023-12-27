@@ -87,7 +87,7 @@ void main(void)
 		printk("Interface init failed (err %d)\n", err);
 		return;
 	}
-	err= bt_unpair(BT_ID_DEFAULT,BT_ADDR_LE_ANY);
+	
 
 	err = dclk_init(&app_callbacks);
 	if (err)
@@ -96,6 +96,7 @@ void main(void)
 		return;
 	}
 	LOG_INF("Bluetooth initialized\n");
+	err= bt_unpair(BT_ID_DEFAULT,BT_ADDR_LE_ANY);
 
 	start_advertising();
 
