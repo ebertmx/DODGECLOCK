@@ -23,14 +23,12 @@
 
 LOG_MODULE_REGISTER(DCLK_app, LOG_LEVEL_INF);
 
-
 #define STACKSIZE 1024
 #define PRIORITY 7
 
 #define RUN_LED_BLINK_INTERVAL 1000
 
 #define SYNC_INTERVAL 300
-
 
 /*DCLK Service and BLE*/
 static uint32_t app_clock_cb(void)
@@ -54,7 +52,6 @@ static uint8_t pair_cb(void)
 }
 static uint8_t user_cb(void)
 {
-
 }
 
 static struct interface_cb inter_callbacks = {
@@ -62,14 +59,16 @@ static struct interface_cb inter_callbacks = {
 	.user_cb = user_cb,
 };
 
-
 void update_dclock(void)
 {
+	uint32_t temp_dclock = get_dclock();
+	uint8_t temp_dstate = get_dstate();
 	while (1)
 	{
-		
-		dclk_send_clock_notify(get_dclock());
-		dclk_send_state_notify(get_dstate());
+		temp_dclock = get_dclock();
+		temp_dstate = get_dstate();
+		dclk_send_clock_notify(&temp_dclock);
+		dclk_send_state_notify(&temp_dstate);
 
 		k_sleep(K_MSEC(SYNC_INTERVAL));
 	}
@@ -87,7 +86,6 @@ void main(void)
 		printk("Interface init failed (err %d)\n", err);
 		return;
 	}
-	
 
 	err = dclk_init(&app_callbacks);
 	if (err)
@@ -96,13 +94,13 @@ void main(void)
 		return;
 	}
 	LOG_INF("Bluetooth initialized\n");
-	err= bt_unpair(BT_ID_DEFAULT,BT_ADDR_LE_ANY);
+
 
 	start_advertising();
 
 	for (;;)
 	{
-		//dk_set_led(RUN_STATUS_LED, (++blink_status) % 2);
+		// dk_set_led(RUN_STATUS_LED, (++blink_status) % 2);
 		k_sleep(K_MSEC(RUN_LED_BLINK_INTERVAL));
 	}
 }

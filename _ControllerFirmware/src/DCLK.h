@@ -82,7 +82,7 @@ int start_pairing(void);
  * @retval 0 If the operation was successful.
  *           Otherwise, a (negative) error code is returned.
  */
-int dclk_send_state_notify(uint8_t state);
+int dclk_send_state_notify(uint8_t *state);
 
 /** @brief Send the sensor value as notification.
  *
@@ -94,7 +94,7 @@ int dclk_send_state_notify(uint8_t state);
  * @retval 0 If the operation was successful.
  *           Otherwise, a (negative) error code is returned.
  */
-int dclk_send_clock_notify(uint32_t clock);
+int dclk_send_clock_notify(uint32_t *clock);
 
 
 

@@ -22,56 +22,6 @@ enum
     DCLK_C_dstate_WRITE_PENDING
 };
 
-static uint8_t on_received(struct bt_conn *conn,
-                           struct bt_gatt_subscribe_params *params,
-                           const void *data, uint16_t length)
-{
-    struct bt_DCLK_client *DCLK;
-
-    /* Retrieve DCLK Client module context. */
-    DCLK = CONTAINER_OF(params, struct bt_DCLK_client, dclock_notif_params);
-
-    if (!data)
-    {
-        LOG_DBG("[UNSUBSCRIBED]");
-        params->value_handle = 0;
-        atomic_clear_bit(&DCLK->state, DCLK_C_dclock_NOTIF_ENABLED);
-        if (DCLK->cb.unsubscribed)
-        {
-            DCLK->cb.unsubscribed(DCLK);
-        }
-        return BT_GATT_ITER_STOP;
-    }
-
-    LOG_DBG("[NOTIFICATION] data %p length %u", data, length);
-    if (DCLK->cb.received)
-    {
-        return DCLK->cb.received(DCLK, data, length);
-    }
-
-    return BT_GATT_ITER_CONTINUE;
-}
-
-// static void on_sent(struct bt_conn *conn, uint8_t err,
-// 		    struct bt_gatt_subscribe_params *params)
-// {
-// 	struct bt_DCLK_client *DCLK_c;
-// 	const void *data;
-// 	uint16_t length;
-
-// 	/* Retrieve DCLK Client module context. */
-// 	DCLK_c = CONTAINER_OF(params, struct bt_DCLK_client, dstate_write_params);
-
-// 	/* Make a copy of volatile data that is required by the callback. */
-// 	data = params->data;
-// 	length = params->length;
-
-// 	atomic_clear_bit(&DCLK_c->state, DCLK_C_dstate_WRITE_PENDING);
-// 	if (DCLK_c->cb.sent) {
-// 		DCLK_c->cb.sent(DCLK_c, err, data, length);
-// 	}
-// }
-
 int bt_DCLK_client_init(struct bt_DCLK_client *DCLK_c,
                         const struct bt_DCLK_client_init_param *DCLK_c_init)
 {
@@ -89,33 +39,6 @@ int bt_DCLK_client_init(struct bt_DCLK_client *DCLK_c,
 
     return 0;
 }
-
-// int bt_DCLK_client_send(struct bt_DCLK_client *DCLK_c, const uint8_t *data,
-// 		       uint16_t len)
-// {
-// 	int err;
-
-// 	if (!DCLK_c->conn) {
-// 		return -ENOTCONN;
-// 	}
-
-// 	if (atomic_test_and_set_bit(&DCLK_c->state, DCLK_C_dstate_WRITE_PENDING)) {
-// 		return -EALREADY;
-// 	}
-
-// 	DCLK_c->dstate_notif_params.func = on_sent;
-// 	DCLK_c->dstate_notif_params.handle = DCLK_c->handles.dstate;
-// 	DCLK_c->dstate_notif_params.offset = 0;
-// 	DCLK_c->dstate_notif_params.data = data;
-// 	DCLK_c->dstate_notif_params.length = len;
-
-// 	err = bt_gatt_write(DCLK_c->conn, &DCLK_c->dstate_notif_params);
-// 	if (err) {
-// 		atomic_clear_bit(&DCLK_c->state, DCLK_C_dstate_WRITE_PENDING);
-// 	}
-
-// 	return err;
-// }
 
 int bt_DCLK_handles_assign(struct bt_gatt_dm *dm,
                            struct bt_DCLK_client *DCLK_c)
@@ -197,6 +120,39 @@ int bt_DCLK_handles_assign(struct bt_gatt_dm *dm,
     return 0;
 }
 
+
+
+static uint8_t on_received(struct bt_conn *conn,
+                           struct bt_gatt_subscribe_params *params,
+                           const void *data, uint16_t length)
+{
+    struct bt_DCLK_client *DCLK;
+
+    /* Retrieve DCLK Client module context. */
+    DCLK = CONTAINER_OF(params, struct bt_DCLK_client, dclock_notif_params);
+
+    if (!data)
+    {
+        LOG_INF("[UNSUBSCRIBED]");
+        params->value_handle = 0;
+        atomic_clear_bit(&DCLK->state, DCLK_C_dclock_NOTIF_ENABLED);
+        if (DCLK->cb.unsubscribed)
+        {
+            DCLK->cb.unsubscribed(DCLK);
+        }
+        return BT_GATT_ITER_STOP;
+    }
+
+    uint32_t val = *(uint32_t*)data;
+    LOG_INF("[NOTIFICATION] %p data %lu length %u", params->value, val, length);
+    if (DCLK->cb.received)
+    {
+        return DCLK->cb.received(DCLK, data, length);
+    }
+
+    return BT_GATT_ITER_CONTINUE;
+}
+
 int bt_DCLK_subscribe_receive(struct bt_DCLK_client *DCLK_c)
 {
     int err;
@@ -216,12 +172,12 @@ int bt_DCLK_subscribe_receive(struct bt_DCLK_client *DCLK_c)
     err = bt_gatt_subscribe(DCLK_c->conn, &DCLK_c->dclock_notif_params);
     if (err)
     {
-        LOG_ERR("Subscribe failed (err %d)", err);
+        LOG_ERR("Subscribe DCLOCK failed (err %d)", err);
         atomic_clear_bit(&DCLK_c->state, DCLK_C_dclock_NOTIF_ENABLED);
     }
     else
     {
-        LOG_DBG("[SUBSCRIBED]");
+        LOG_DBG("[SUBSCRIBED DCLOCK]");
     }
 
     return err;

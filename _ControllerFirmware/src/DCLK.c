@@ -31,7 +31,7 @@ LOG_MODULE_DECLARE(DCLK_app);
 static bool notify_state_enabled;
 static bool notify_clock_enabled;
 static uint8_t state;
-static int32_t clock;
+static uint32_t clock;
 static struct dclk_cb dclk_cb;
 
 const unsigned int passkey = 123456;
@@ -171,6 +171,8 @@ static void on_connected(struct bt_conn *conn, uint8_t err)
 	}
 
 	LOG_INF("Connected\n");
+	bt_conn_set_security(conn, BT_SECURITY_L4);
+	
 }
 
 static void on_disconnected(struct bt_conn *conn, uint8_t reason)
@@ -281,7 +283,7 @@ static void passkey_confirm(struct bt_conn *conn, unsigned int passkey)
 	// bt_conn_auth_cancel(conn);
 }
 
-static void enter_passkey(struct bt_conn *conn)
+static void passkey_entry(struct bt_conn *conn)
 {
 	LOG_INF("Sending entry passkey = %d", passkey);
 	bt_conn_auth_passkey_entry(conn, passkey);
@@ -289,8 +291,8 @@ static void enter_passkey(struct bt_conn *conn)
 
 static struct bt_conn_auth_cb auth_cb_display = {
 	.passkey_display = NULL, // auth_passkey_display,
-	.passkey_confirm = NULL, // auth_passkey_confirm,
-	.passkey_entry = enter_passkey,
+	.passkey_confirm = passkey_confirm, // auth_passkey_confirm,
+	.passkey_entry = passkey_entry,
 	.cancel = auth_cancel,
 	.pairing_confirm = auth_pairing, // pairing_confirm,
 };
@@ -300,14 +302,14 @@ BT_GATT_SERVICE_DEFINE(
 	dclk_svc, BT_GATT_PRIMARY_SERVICE(BT_UUID_DCLK),
 	/*Button characteristic declaration */
 	BT_GATT_CHARACTERISTIC(BT_UUID_DCLK_STATE, BT_GATT_CHRC_READ | BT_GATT_CHRC_NOTIFY,
-						   BT_GATT_PERM_READ, read_state, NULL, &state),
+						   BT_GATT_PERM_READ_AUTHEN, read_state, NULL, &state),
 	/* Client Characteristic Configuration Descriptor */
-	BT_GATT_CCC(dclk_ccc_state_cfg_changed, BT_GATT_PERM_READ | BT_GATT_PERM_WRITE),
+	BT_GATT_CCC(dclk_ccc_state_cfg_changed, BT_GATT_PERM_READ_AUTHEN | BT_GATT_PERM_WRITE_AUTHEN),
 
 	BT_GATT_CHARACTERISTIC(BT_UUID_DCLK_CLOCK, BT_GATT_CHRC_READ | BT_GATT_CHRC_NOTIFY,
-						   BT_GATT_PERM_READ, read_clock, NULL, &clock),
+						   BT_GATT_PERM_READ_AUTHEN, read_clock, NULL, &clock),
 
-	BT_GATT_CCC(dclk_ccc_clock_cfg_changed, BT_GATT_PERM_READ | BT_GATT_PERM_WRITE),
+	BT_GATT_CCC(dclk_ccc_clock_cfg_changed, BT_GATT_PERM_READ_AUTHEN | BT_GATT_PERM_WRITE_AUTHEN),
 
 );
 
@@ -328,6 +330,8 @@ int dclk_init(struct dclk_cb *callbacks)
 
 	bt_passkey_set(passkey);
 	settings_load();
+
+	err = bt_unpair(BT_ID_DEFAULT, BT_ADDR_LE_ANY);
 	if (callbacks)
 	{
 		dclk_cb.clock_cb = callbacks->clock_cb;
@@ -355,21 +359,21 @@ int start_pairing(void)
 	}
 }
 
-int dclk_send_state_notify(uint8_t state)
+int dclk_send_state_notify(uint8_t *state)
 {
 	if (!notify_state_enabled)
 	{
 		return -EACCES;
 	}
 
-	return bt_gatt_notify(NULL, &dclk_svc.attrs[2], &state, sizeof(state));
+	return bt_gatt_notify(NULL, &dclk_svc.attrs[2], state, sizeof(state));
 }
 
-int dclk_send_clock_notify(uint32_t clock)
+int dclk_send_clock_notify(uint32_t *clock)
 {
 	if (!notify_clock_enabled)
 	{
 		return -EACCES;
 	}
-	return bt_gatt_notify(NULL, &dclk_svc.attrs[5], &clock, sizeof(clock));
+	return bt_gatt_notify(NULL, &dclk_svc.attrs[5], clock, sizeof(clock));
 }

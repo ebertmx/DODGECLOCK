@@ -54,6 +54,7 @@ static void discovery_complete(struct bt_gatt_dm *dm,
 {
 	LOG_INF("Service discovery completed");
 	struct bt_DCLK_client *DCLK = context;
+	//LOG_INF("context: %d", DCLK->dstate_notif_params);
 	bt_gatt_dm_data_print(dm);
 	bt_DCLK_handles_assign(dm, DCLK);
 	bt_DCLK_subscribe_receive(DCLK);
@@ -352,6 +353,8 @@ int bluetooth_init(void)
 	{
 		settings_load();
 	}
+
+	err= bt_unpair(BT_ID_DEFAULT,BT_ADDR_LE_ANY);
 
 	err = scan_init();
 	if (err != 0)
