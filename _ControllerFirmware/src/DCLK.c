@@ -1,11 +1,10 @@
-/*
- * Copyright (c) 2018 Nordic Semiconductor ASA
+/*Matthew Ebert
+ *02-JAN-2024
  *
- * SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
  */
 
-/** @file
- *  @brief LED Button Service (LBS) sample
+/** @file DCLK.c
+ *  @brief DCLK host Bluetooth Service
  */
 
 #include <zephyr/types.h>
@@ -21,12 +20,11 @@
 #include <zephyr/bluetooth/conn.h>
 #include <zephyr/bluetooth/uuid.h>
 #include <zephyr/bluetooth/gatt.h>
-
 #include <zephyr/settings/settings.h>
 
 #include "DCLK.h"
 
-LOG_MODULE_DECLARE(DCLK_app);
+LOG_MODULE_DECLARE(DCLK_host);
 
 static bool notify_state_enabled;
 static bool notify_clock_enabled;
@@ -34,16 +32,17 @@ static uint8_t state;
 static uint32_t clock;
 static struct dclk_cb dclk_cb;
 
-const unsigned int passkey = 123456;
+static bool pairing_enabled;
+
+static unsigned int passkey;
 
 #define DEVICE_NAME CONFIG_BT_DEVICE_NAME
 #define DEVICE_NAME_LEN (sizeof(DEVICE_NAME) - 1)
 
-/* STEP 3.2.1 - Define advertising parameter for no Accept List */
 #define BT_LE_ADV_CONN_NO_ACCEPT_LIST                                   \
 	BT_LE_ADV_PARAM(BT_LE_ADV_OPT_CONNECTABLE | BT_LE_ADV_OPT_ONE_TIME, \
 					BT_GAP_ADV_FAST_INT_MIN_2, BT_GAP_ADV_FAST_INT_MAX_2, NULL)
-/* STEP 3.2.2 - Define advertising parameter for when Accept List is used */
+
 #define BT_LE_ADV_CONN_ACCEPT_LIST                                          \
 	BT_LE_ADV_PARAM(BT_LE_ADV_OPT_CONNECTABLE | BT_LE_ADV_OPT_FILTER_CONN | \
 						BT_LE_ADV_OPT_ONE_TIME,                             \
@@ -58,6 +57,7 @@ static const struct bt_data ad[] = {
 static const struct bt_data sd[] = {
 	BT_DATA_BYTES(BT_DATA_UUID128_ALL, BT_UUID_DCLK_VAL),
 };
+
 static void setup_accept_list_cb(const struct bt_bond_info *info, void *user_data)
 {
 	int *bond_cnt = user_data;
@@ -81,14 +81,13 @@ static void setup_accept_list_cb(const struct bt_bond_info *info, void *user_dat
 	}
 }
 
-/* STEP 3.3.2 - Define the function to loop through the bond list */
 static int setup_accept_list(uint8_t local_id)
 {
 	int err = bt_le_filter_accept_list_clear();
 
 	if (err)
 	{
-		LOG_INF("Cannot clear accept list (err: %d)\n", err);
+		LOG_INF("Cannot clear BLE accept list (err: %d)\n", err);
 		return err;
 	}
 
@@ -99,37 +98,7 @@ static int setup_accept_list(uint8_t local_id)
 	return bond_cnt;
 }
 
-void initiate_pair(struct k_work *work)
-{
-
-	int err_code = bt_le_adv_stop();
-	if (err_code)
-	{
-		printk("Cannot stop advertising err= %d \n", err_code);
-		return;
-	}
-	err_code = bt_le_filter_accept_list_clear();
-	if (err_code)
-	{
-		printk("Cannot clear accept list (err: %d)\n", err_code);
-	}
-	else
-	{
-		printk("Filter Accept List cleared succesfully");
-	}
-	err_code = bt_le_adv_start(BT_LE_ADV_CONN_NO_ACCEPT_LIST, ad, ARRAY_SIZE(ad), sd, ARRAY_SIZE(sd));
-	if (err_code)
-	{
-		printk("Cannot start open advertising (err: %d)\n", err_code);
-	}
-	else
-	{
-		printk("Advertising in pairing mode started");
-	}
-}
-
-/* STEP 3.4.1 - Define the function to advertise with the Accept List */
-void advertise_with_acceptlist(struct k_work *work)
+void advertise_DCLK(struct k_work *work)
 {
 	int err = 0;
 	int allowed_cnt = setup_accept_list(BT_ID_DEFAULT);
@@ -138,16 +107,20 @@ void advertise_with_acceptlist(struct k_work *work)
 		LOG_INF("Acceptlist setup failed (err:%d)\n", allowed_cnt);
 	}
 	else
-	{
-		if (allowed_cnt == 0)
+	{ // if no accept list and pairing enabled
+		if (allowed_cnt == 0 && pairing_enabled)
 		{
 			LOG_INF("Advertising with no Accept list \n");
+			// One shot advertizing due to bt_adv_param settings
+			// stops upon connection
 			err = bt_le_adv_start(BT_LE_ADV_CONN_NO_ACCEPT_LIST, ad, ARRAY_SIZE(ad), sd,
 								  ARRAY_SIZE(sd));
 		}
 		else
 		{
 			LOG_INF("Acceptlist setup number  = %d \n", allowed_cnt);
+			// One shot advertizing due to bt_adv_param settings
+			// stops upon connection
 			err = bt_le_adv_start(BT_LE_ADV_CONN_ACCEPT_LIST, ad, ARRAY_SIZE(ad), sd,
 								  ARRAY_SIZE(sd));
 		}
@@ -160,7 +133,12 @@ void advertise_with_acceptlist(struct k_work *work)
 	}
 }
 
-K_WORK_DEFINE(advertise_acceptlist_work, advertise_with_acceptlist);
+K_WORK_DEFINE(advertise_DCLK_work, advertise_DCLK);
+
+void start_advertising(void)
+{
+	k_work_submit(&advertise_DCLK_work);
+}
 
 static void on_connected(struct bt_conn *conn, uint8_t err)
 {
@@ -171,15 +149,14 @@ static void on_connected(struct bt_conn *conn, uint8_t err)
 	}
 
 	LOG_INF("Connected\n");
-	bt_conn_set_security(conn, BT_SECURITY_L4);
-	
 }
 
 static void on_disconnected(struct bt_conn *conn, uint8_t reason)
 {
 	LOG_INF("Disconnected (reason %u)\n", reason);
 
-	k_work_submit(&advertise_acceptlist_work);
+	// advertize to try and reconnect
+	k_work_submit(&advertise_DCLK_work);
 }
 
 static void on_security_changed(struct bt_conn *conn, bt_security_t level, enum bt_security_err err)
@@ -197,6 +174,7 @@ static void on_security_changed(struct bt_conn *conn, bt_security_t level, enum 
 		LOG_INF("Security failed: %s level %u err %d\n", addr, level, err);
 	}
 }
+
 struct bt_conn_cb connection_callbacks = {
 	.connected = on_connected,
 	.disconnected = on_disconnected,
@@ -268,21 +246,6 @@ static void auth_cancel(struct bt_conn *conn)
 	printk("Pairing cancelled: %s\n", addr);
 }
 
-static void passkey_confirm(struct bt_conn *conn, unsigned int passkey)
-{
-	// Display the passkey on your device's interface for confirmation
-	printk("Passkey for confirmation: %06u\n", passkey);
-
-	// You might implement a mechanism to confirm the passkey here,
-	// for example, through a user interface or automatic confirmation.
-
-	// If the passkey is confirmed, you can respond with:
-	bt_conn_auth_passkey_confirm(conn);
-
-	// If the passkey is rejected, you can respond with:
-	// bt_conn_auth_cancel(conn);
-}
-
 static void passkey_entry(struct bt_conn *conn)
 {
 	LOG_INF("Sending entry passkey = %d", passkey);
@@ -290,11 +253,11 @@ static void passkey_entry(struct bt_conn *conn)
 }
 
 static struct bt_conn_auth_cb auth_cb_display = {
-	.passkey_display = NULL, // auth_passkey_display,
-	.passkey_confirm = passkey_confirm, // auth_passkey_confirm,
+	.passkey_display = NULL,
+	.passkey_confirm = NULL,
 	.passkey_entry = passkey_entry,
 	.cancel = auth_cancel,
-	.pairing_confirm = auth_pairing, // pairing_confirm,
+	.pairing_confirm = auth_pairing,
 };
 
 /* DCLK Service Declaration */
@@ -313,40 +276,60 @@ BT_GATT_SERVICE_DEFINE(
 
 );
 
-/* A function to register application callbacks for the LED and Button characteristics  */
-int dclk_init(struct dclk_cb *callbacks)
+int dclk_init(struct dclk_cb *callbacks, unsigned int custom_passkey)
 {
 	int err;
 
-	bt_conn_cb_register(&connection_callbacks);
-	bt_conn_auth_cb_register(&auth_cb_display);
+	err = bt_conn_auth_cb_register(&auth_cb_display);
+	if (err)
+	{
+		LOG_ERR("Bluetooth authetication register failed (err %d)\n", err);
+		return err;
+	}
 
 	err = bt_enable(NULL);
 	if (err)
 	{
-		LOG_ERR("Bluetooth init failed (err %d)\n", err);
-		return;
+		LOG_ERR("Bluetooth enable failed (err %d)\n", err);
+		return err;
 	}
 
+	passkey = custom_passkey;
 	bt_passkey_set(passkey);
-	settings_load();
+	if (err)
+	{
+		LOG_ERR("Bluetooth passkey set failed (err %d)\n", err);
+		return err;
+	}
 
+	if (IS_ENABLED(CONFIG_SETTINGS))
+	{
+		err = settings_load();
+	}
+
+	if (err)
+	{
+		LOG_ERR("Bluetooth load settings failed (err %d)\n", err);
+		return err;
+	}
+
+	// For testing only
 	err = bt_unpair(BT_ID_DEFAULT, BT_ADDR_LE_ANY);
+	pairing_enabled = true;
+
+	bt_conn_cb_register(&connection_callbacks);
 	if (callbacks)
 	{
 		dclk_cb.clock_cb = callbacks->clock_cb;
 		dclk_cb.state_cb = callbacks->state_cb;
 	}
 
+	start_advertising();
+
 	return 0;
 }
 
-void start_advertising(void)
-{
-	k_work_submit(&advertise_acceptlist_work);
-}
-
-int start_pairing(void)
+int dclk_pairing(bool enable)
 {
 	int err = bt_unpair(BT_ID_DEFAULT, BT_ADDR_LE_ANY);
 	if (err)
@@ -357,6 +340,9 @@ int start_pairing(void)
 	{
 		LOG_INF("Bond deleted succesfully \n");
 	}
+	start_advertising();
+
+	return 0;
 }
 
 int dclk_send_state_notify(uint8_t *state)

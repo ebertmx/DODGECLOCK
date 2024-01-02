@@ -41,6 +41,7 @@ static void d_clock_expire(struct k_timer *timer_id)
 	d_state = 2;
 	d_clock = 0;
 	d_clock = 10000;
+	d_state = 0;
 	k_timer_start(&d_timer, K_MSEC(d_clock), K_NO_WAIT);
 }
 
@@ -133,6 +134,7 @@ int interface_init(struct interface_cb *app_cb)
 
 	
 	d_clock = 10000;
+	d_state = 0;
 	k_timer_start(&d_timer, K_MSEC(d_clock), K_NO_WAIT);
 	return 0;
 }

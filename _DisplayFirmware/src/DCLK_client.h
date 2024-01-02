@@ -1,17 +1,11 @@
-/*
- * Copyright (c) 2018 Nordic Semiconductor ASA
- *
- * SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
- */
-
 #ifndef BT_DCLK_CLIENT_H_
 #define BT_DCLK_CLIENT_H_
 
 /**
  * @file
- * @defgroup bt_DCLK_client Bluetooth LE GATT DCLK Client API
+ * @defgroup DCLK_client Bluetooth LE GATT DCLK Client API
  * @{
- * @brief API for the Bluetooth LE GATT Nordic UART Service (DCLK) Client.
+ * @brief API for the Bluetooth LE DCLK Service (Client)
  */
 
 #ifdef __cplusplus
@@ -79,10 +73,9 @@ extern "C"
          */
         uint8_t (*received)(struct bt_DCLK_client *DCLK, const uint8_t *data, uint16_t len);
 
-
-        /** @brief dclock notifications disabled callback.
+        /** @brief notifications disabled callback.
          *
-         * dclock notifications have been disabled.
+         * notifications have been disabled.
          *
          * @param[in] DCLK  DCLK Client instance.
          */
@@ -133,10 +126,9 @@ extern "C"
      * @retval 0 If the operation was successful.
      *           Otherwise, a negative error code is returned.
      */
-    int bt_DCLK_client_init(struct bt_DCLK_client *DCLK,
-                            const struct bt_DCLK_client_init_param *init_param);
+    int dclk_client_init(struct bt_DCLK_client *DCLK,
+                         const struct bt_DCLK_client_init_param *init_param);
 
-    
     /** @brief Assign handles to the DCLK Client instance.
      *
      * This function should be called when a link with a peer has been established
@@ -153,8 +145,8 @@ extern "C"
      *         of the service does not match the expected UUID.
      * @retval Otherwise, a negative error code is returned.
      */
-    int bt_DCLK_handles_assign(struct bt_gatt_dm *dm,
-                               struct bt_DCLK_client *DCLK);
+    int dclk_client_handles_assign(struct bt_gatt_dm *dm,
+                                   struct bt_DCLK_client *DCLK);
 
     /** @brief Request the peer to start sending notifications for the dclock
      *	   Characteristic.
@@ -167,7 +159,26 @@ extern "C"
      * @retval 0 If the operation was successful.
      *           Otherwise, a negative error code is returned.
      */
-    int bt_DCLK_subscribe_receive(struct bt_DCLK_client *DCLK);
+    int dclk_client_subscribe(struct bt_DCLK_client *DCLK);
+
+
+
+    /** @brief Callback type for when an clock is read. */
+    typedef uint32_t (*clock_cb_t)(void);
+
+    /** @brief Callback type for when state is read. */
+    typedef uint8_t (*state_cb_t)(void);
+
+    /** @brief Callback struct used by DCLK Service. */
+    struct dclk_client_cb
+    {
+        /** clock read callback. */
+        clock_cb_t clock_cb;
+        /** state read callback. */
+        state_cb_t state_cb;
+    };
+
+    int dclk_client_init_2(struct dclk_client_cb *callbacks, unsigned int custom_passkey);
 
 #ifdef __cplusplus
 }
@@ -177,4 +188,4 @@ extern "C"
  * @}
  */
 
-#endif /* BT_DCLK_CLIENT_H_ */
+#endif /* DCLK_CLIENT_H_ */

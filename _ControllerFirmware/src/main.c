@@ -48,7 +48,7 @@ static struct dclk_cb app_callbacks = {
 
 static uint8_t pair_cb(void)
 {
-	start_pairing();
+	dclk_pairing(true);
 }
 static uint8_t user_cb(void)
 {
@@ -87,7 +87,7 @@ void main(void)
 		return;
 	}
 
-	err = dclk_init(&app_callbacks);
+	err = dclk_init(&app_callbacks, 123456);
 	if (err)
 	{
 		printk("Failed to init LBS (err:%d)\n", err);
@@ -96,7 +96,7 @@ void main(void)
 	LOG_INF("Bluetooth initialized\n");
 
 
-	start_advertising();
+
 
 	for (;;)
 	{
