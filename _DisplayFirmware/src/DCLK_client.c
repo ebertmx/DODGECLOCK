@@ -49,18 +49,18 @@ static uint8_t on_received(struct bt_conn *conn,
 
 	if (params->value_handle == DCLK_client.dclock_notif_params.value_handle)
 	{
-		LOG_INF("D_CLOCK updated");
+		//LOG_INF("D_CLOCK updated");
 		if (DCLK_client.cb.received_clock)
 		{
-			return DCLK_client.cb.received_clock(data, length);
+			return DCLK_client.cb.received_clock(*(uint32_t*)data);
 		}
 	}
 	else if (params->value_handle == DCLK_client.dstate_notif_params.value_handle)
 	{
-		LOG_INF("D_STATE updated");
+		//LOG_INF("D_STATE updated");
 		if (DCLK_client.cb.received_state)
 		{
-			return DCLK_client.cb.received_state(data, length);
+			return DCLK_client.cb.received_state(*(uint8_t*)data);
 		}
 	}
 	return BT_GATT_ITER_CONTINUE;
@@ -290,7 +290,7 @@ static void connected(struct bt_conn *conn, uint8_t conn_err)
 
 	static struct bt_gatt_exchange_params exchange_params;
 
-	exchange_params.func = exchange_func;
+	//exchange_params.func = exchange_func;
 	err = bt_gatt_exchange_mtu(conn, &exchange_params);
 	if (err)
 	{

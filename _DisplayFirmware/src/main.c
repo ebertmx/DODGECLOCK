@@ -10,7 +10,6 @@
 #include <zephyr/bluetooth/uuid.h>
 #include <zephyr/sys/util.h>
 #include <zephyr/logging/log.h>
-// #include "d_UART_helper.c"
 #include "DCLK_client.h"
 
 
@@ -18,14 +17,14 @@ LOG_MODULE_REGISTER(Display_app, CONFIG_LOG_DEFAULT_LEVEL);
 
 /*DCLK Client Service and BLE*/
 
-static uint8_t app_clock_cb(const void *data, uint16_t length)
+static uint8_t app_clock_cb(uint32_t data)
 {
-	LOG_INF("clock cb");
+	LOG_INF("DCLK - Clock = %d ms", data);
 	return BT_GATT_ITER_CONTINUE;
 }
-static uint8_t app_state_cb(const void *data, uint16_t length)
+static uint8_t app_state_cb(uint8_t data)
 {
-	LOG_INF("state cb");
+	LOG_INF("DCLK - State = %d", data);
 	return BT_GATT_ITER_CONTINUE;
 }
 

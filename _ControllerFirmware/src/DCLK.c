@@ -24,7 +24,7 @@
 
 #include "DCLK.h"
 
-LOG_MODULE_DECLARE(DCLK_host);
+LOG_MODULE_DECLARE(Controller_app, LOG_LEVEL_INF);
 
 static bool notify_state_enabled;
 static bool notify_clock_enabled;
