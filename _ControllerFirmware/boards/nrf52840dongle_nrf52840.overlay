@@ -34,7 +34,7 @@
 			label = "Push button switch 2";
 		};
 		button3: button_3 {
-			gpios = <&gpio0 25 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+			gpios = <&gpio0 6 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
 			label = "Push button switch 3";
 		};
 	};
