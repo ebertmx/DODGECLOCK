@@ -2,7 +2,6 @@
 
 #include <zephyr/types.h>
 #include <stddef.h>
-#include <zephyr/sys/printk.h>
 #include <zephyr/sys/util.h>
 
 #include <zephyr/bluetooth/bluetooth.h>
@@ -13,8 +12,6 @@
 #include <zephyr/sys/byteorder.h>
 #include <bluetooth/gatt_dm.h>
 
-#include <bluetooth/scan.h>
-
 #include <zephyr/settings/settings.h>
 
 #include <zephyr/logging/log.h>
@@ -24,13 +21,13 @@
 static unsigned int display_passkey = 123456;
 
 static struct bt_conn *default_conn;
-struct bt_DCLK_client DCLK_client;
+struct dclk_client_t DCLK_client;
 
 #define BT_UUID_DCLK BT_UUID_DECLARE_128(BT_UUID_DCLK_VAL)
 #define BT_UUID_DCLK_VAL BT_UUID_128_ENCODE(0x00001553, 0x1212, 0xefde, 0x1523, 0x785feabcd123)
 
 // #define LOG_MODULE_NAME DCLK_CLIENT
-LOG_MODULE_REGISTER(DCLK_client);
+LOG_MODULE_DECLARE(Display_app, CONFIG_LOG_DEFAULT_LEVEL);
 
 enum
 {
@@ -39,10 +36,86 @@ enum
 	DCLK_STATE_NOTIF_ENABLED
 };
 
+static uint8_t on_received(struct bt_conn *conn,
+						   struct bt_gatt_subscribe_params *params,
+						   const void *data, uint16_t length)
+{
+	if (!data)
+	{
+		DCLK_client.cb.unsubscribed(params);
 
+		return BT_GATT_ITER_STOP;
+	}
+
+	if (params->value_handle == DCLK_client.dclock_notif_params.value_handle)
+	{
+		LOG_INF("D_CLOCK updated");
+		if (DCLK_client.cb.received_clock)
+		{
+			return DCLK_client.cb.received_clock(data, length);
+		}
+	}
+	else if (params->value_handle == DCLK_client.dstate_notif_params.value_handle)
+	{
+		LOG_INF("D_STATE updated");
+		if (DCLK_client.cb.received_state)
+		{
+			return DCLK_client.cb.received_state(data, length);
+		}
+	}
+	return BT_GATT_ITER_CONTINUE;
+}
+
+int dclk_client_subscribe(struct dclk_client_t *DCLK_c)
+{
+	int err;
+
+	if (atomic_test_and_set_bit(&DCLK_c->conn_state, DCLK_CLOCK_NOTIF_ENABLED))
+	{
+		return -EALREADY;
+	}
+
+	DCLK_c->dclock_notif_params.notify = on_received;
+	DCLK_c->dclock_notif_params.value = BT_GATT_CCC_NOTIFY;
+	DCLK_c->dclock_notif_params.value_handle = DCLK_c->handles.dclock;
+	DCLK_c->dclock_notif_params.ccc_handle = DCLK_c->handles.dclock_ccc;
+	atomic_set_bit(DCLK_c->dclock_notif_params.flags,
+				   BT_GATT_SUBSCRIBE_FLAG_VOLATILE);
+
+	err = bt_gatt_subscribe(DCLK_c->conn, &DCLK_c->dclock_notif_params);
+	if (err)
+	{
+		LOG_ERR("Subscribe DCLOCK failed (err %d)", err);
+		atomic_clear_bit(&DCLK_c->conn_state, DCLK_CLOCK_NOTIF_ENABLED);
+	}
+	else
+	{
+		LOG_DBG("[SUBSCRIBED DCLOCK]");
+	}
+
+	DCLK_c->dstate_notif_params.notify = on_received;
+	DCLK_c->dstate_notif_params.value = BT_GATT_CCC_NOTIFY;
+	DCLK_c->dstate_notif_params.value_handle = DCLK_c->handles.dstate;
+	DCLK_c->dstate_notif_params.ccc_handle = DCLK_c->handles.dstate_ccc;
+	atomic_set_bit(DCLK_c->dstate_notif_params.flags,
+				   BT_GATT_SUBSCRIBE_FLAG_VOLATILE);
+
+	err = bt_gatt_subscribe(DCLK_c->conn, &DCLK_c->dstate_notif_params);
+	if (err)
+	{
+		LOG_ERR("Subscribe DSTATE failed (err %d)", err);
+		atomic_clear_bit(&DCLK_c->conn_state, DCLK_STATE_NOTIF_ENABLED);
+	}
+	else
+	{
+		LOG_DBG("[SUBSCRIBED DCLOCK]");
+	}
+
+	return err;
+}
 
 int dclk_client_handles_assign(struct bt_gatt_dm *dm,
-							   struct bt_DCLK_client *DCLK_c)
+							   struct dclk_client_t *DCLK_c)
 {
 
 	const struct bt_gatt_dm_attr *gatt_service_attr =
@@ -121,84 +194,11 @@ int dclk_client_handles_assign(struct bt_gatt_dm *dm,
 	return 0;
 }
 
-static uint8_t on_received(struct bt_conn *conn,
-						   struct bt_gatt_subscribe_params *params,
-						   const void *data, uint16_t length)
-{
-	struct bt_DCLK_client *DCLK;
-
-	/* Retrieve DCLK Client module context. */
-	DCLK = CONTAINER_OF(params, struct bt_DCLK_client, dclock_notif_params);
-
-	if (!data)
-	{
-		LOG_INF("[UNSUBSCRIBED]");
-		params->value_handle = 0;
-		atomic_clear_bit(&DCLK->state, DCLK_CLOCK_NOTIF_ENABLED);
-		if (DCLK->cb.unsubscribed)
-		{
-			DCLK->cb.unsubscribed(DCLK);
-		}
-		return BT_GATT_ITER_STOP;
-	}
-
-	uint32_t val = *(uint32_t *)data;
-	LOG_INF("[NOTIFICATION] data %lu length %u", val, length);
-	if (DCLK->cb.received)
-	{
-		return DCLK->cb.received(DCLK, data, length);
-	}
-
-	return BT_GATT_ITER_CONTINUE;
-}
-
-int dclk_client_subscribe(struct bt_DCLK_client *DCLK_c)
-{
-	int err;
-
-	if (atomic_test_and_set_bit(&DCLK_c->state, DCLK_CLOCK_NOTIF_ENABLED))
-	{
-		return -EALREADY;
-	}
-
-	DCLK_c->dclock_notif_params.notify = on_received;
-	DCLK_c->dclock_notif_params.value = BT_GATT_CCC_NOTIFY;
-	DCLK_c->dclock_notif_params.value_handle = DCLK_c->handles.dclock;
-	DCLK_c->dclock_notif_params.ccc_handle = DCLK_c->handles.dclock_ccc;
-	atomic_set_bit(DCLK_c->dclock_notif_params.flags,
-				   BT_GATT_SUBSCRIBE_FLAG_VOLATILE);
-
-	err = bt_gatt_subscribe(DCLK_c->conn, &DCLK_c->dclock_notif_params);
-	if (err)
-	{
-		LOG_ERR("Subscribe DCLOCK failed (err %d)", err);
-		atomic_clear_bit(&DCLK_c->state, DCLK_CLOCK_NOTIF_ENABLED);
-	}
-	else
-	{
-		LOG_DBG("[SUBSCRIBED DCLOCK]");
-	}
-
-	return err;
-}
-
-static void unsubscribed(struct bt_DCLK_client *DCLK)
-{
-	LOG_INF("unsubscribe\n");
-}
-
-static uint8_t ble_data_received(struct bt_DCLK_client *nus,
-								 const uint8_t *data, uint16_t len)
-{
-	LOG_INF("BLE REC\n");
-	return 0;
-}
-
 static void discovery_complete(struct bt_gatt_dm *dm,
 							   void *context)
 {
 	LOG_INF("Service discovery completed");
-	struct bt_DCLK_client *DCLK = context;
+	struct dclk_client_t *DCLK = context;
 
 	dclk_client_handles_assign(dm, DCLK);
 
@@ -462,15 +462,25 @@ static struct bt_conn_auth_cb auth_cb_display = {
 	.pairing_confirm = NULL, // auth_pairing,
 };
 
-int dclk_client_init_2(struct dclk_client_cb *callbacks, unsigned int custom_passkey)
+int dclk_client_init(struct dclk_client_cb *callbacks, unsigned int custom_passkey)
 {
 
 	int err;
 
+	if (callbacks)
+	{
+		LOG_INF("DCLK callbacks set");
+		DCLK_client.cb = *callbacks;
+	}
+	else
+	{
+		LOG_ERR("No DCLK callbacks set");
+	}
+
 	err = bt_enable(NULL);
 	if (err)
 	{
-		printk("Bluetooth init failed (err %d)\n", err);
+		LOG_INF("Bluetooth init failed (err %d)", err);
 		return 0;
 	}
 	else
@@ -482,14 +492,21 @@ int dclk_client_init_2(struct dclk_client_cb *callbacks, unsigned int custom_pas
 	err = bt_passkey_set(display_passkey);
 	if (err)
 	{
-		printk("Bluetooth passkey set failed (err %d)\n", err);
+		LOG_INF("Bluetooth passkey set failed (err %d)\n", err);
 		return 0;
 	}
 
 	err = bt_conn_auth_cb_register(&auth_cb_display);
 	if (err)
 	{
-		printk("Bluetooth autherization register failed (err %d)\n", err);
+		LOG_INF("Bluetooth autherization register failed (err %d)\n", err);
+		return 0;
+	}
+
+	err = bt_conn_auth_info_cb_register(&conn_auth_info_callbacks);
+	if (err)
+	{
+		LOG_INF("Bluetooth info register failed (err %d)\n", err);
 		return 0;
 	}
 
@@ -514,7 +531,6 @@ int dclk_client_init_2(struct dclk_client_cb *callbacks, unsigned int custom_pas
 		LOG_ERR("Scanning failed to start (err %d)", err);
 		return 0;
 	}
-	
 
 	LOG_INF("Scanning successfully started");
 

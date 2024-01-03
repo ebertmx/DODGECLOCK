@@ -9,23 +9,36 @@
 #include <zephyr/bluetooth/gatt.h>
 #include <zephyr/bluetooth/uuid.h>
 #include <zephyr/sys/util.h>
+#include <zephyr/logging/log.h>
 // #include "d_UART_helper.c"
 #include "DCLK_client.h"
 
+
+LOG_MODULE_REGISTER(Display_app, CONFIG_LOG_DEFAULT_LEVEL);
+
 /*DCLK Client Service and BLE*/
-static uint32_t app_clock_cb(void)
+
+static uint8_t app_clock_cb(const void *data, uint16_t length)
 {
-	return 0;
+	LOG_INF("clock cb");
+	return BT_GATT_ITER_CONTINUE;
+}
+static uint8_t app_state_cb(const void *data, uint16_t length)
+{
+	LOG_INF("state cb");
+	return BT_GATT_ITER_CONTINUE;
 }
 
-static uint8_t app_state_cb(void)
+static void unsubscribed(struct bt_gatt_subscribe_params *params)
 {
-	return 0;
+	LOG_INF("unsub cb");
+	return BT_GATT_ITER_CONTINUE;
 }
 
 static struct dclk_client_cb app_callbacks = {
-	.clock_cb = app_clock_cb,
-	.state_cb = app_state_cb,
+	.received_clock = app_clock_cb,
+	.received_state = app_state_cb,
+	.unsubscribed = unsubscribed,
 };
 
 int main(void)
@@ -45,7 +58,7 @@ int main(void)
 	// 	}
 	// #endif
 
-	dclk_client_init_2(&app_callbacks, 123456);
+	dclk_client_init(&app_callbacks, 123456);
 
 	while (1)
 	{

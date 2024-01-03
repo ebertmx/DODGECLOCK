@@ -21,7 +21,7 @@
 #include "DCLK.h"
 #include "Interface.h"
 
-LOG_MODULE_REGISTER(DCLK_app, LOG_LEVEL_INF);
+LOG_MODULE_REGISTER(Controller_app, LOG_LEVEL_INF);
 
 #define STACKSIZE 1024
 #define PRIORITY 7
