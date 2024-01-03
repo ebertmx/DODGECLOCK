@@ -29,20 +29,20 @@ static struct gpio_callback button1_cb_data;
 static struct gpio_callback userbtn_cb_data;
 static struct gpio_callback pairbtn_cb_data;
 
-
 struct k_timer d_timer;
 static uint8_t d_state = 0;		 // shot clock state
 static uint32_t d_clock = 10000; // shot clock in ms
 
-
 static struct interface_cb inter_cb;
 /*DCLOCK*/
-
 
 static void d_clock_expire(struct k_timer *timer_id)
 {
 	d_state = 2;
 	d_clock = 0;
+	d_clock = 10000;
+	d_state = 0;
+	k_timer_start(&d_timer, K_MSEC(d_clock), K_NO_WAIT);
 }
 
 static void pair_work_cb(void)
@@ -79,19 +79,17 @@ static void button_pressed(const struct device *dev, struct gpio_callback *cb, u
 	}
 }
 
-
-
-
-uint32_t get_dclock (void)
+uint32_t get_dclock(void)
 {
-	if(d_state ==0)
+	if (d_state == 0)
 	{
 		d_clock = k_timer_remaining_get(&d_timer);
 	}
+
 	return d_clock;
 }
 
-uint32_t get_dstate (void)
+uint32_t get_dstate(void)
 {
 	return d_state;
 }
@@ -128,13 +126,16 @@ int interface_init(struct interface_cb *app_cb)
 	gpio_add_callback(userbtn.port, &userbtn_cb_data);
 	gpio_add_callback(pairbtn.port, &pairbtn_cb_data);
 
-	if(app_cb)
+	if (app_cb)
 	{
 		inter_cb.pair_cb = app_cb->pair_cb;
 		inter_cb.user_cb = app_cb->user_cb;
-		
 	}
+
 	
+	d_clock = 10000;
+	d_state = 0;
+	k_timer_start(&d_timer, K_MSEC(d_clock), K_NO_WAIT);
 	return 0;
 }
 
