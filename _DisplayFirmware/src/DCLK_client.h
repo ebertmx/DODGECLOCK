@@ -74,7 +74,7 @@ extern "C"
          * @retval BT_GATT_ITER_CONTINUE To keep notifications enabled.
          * @retval BT_GATT_ITER_STOP To disable notifications.
          */
-        uint8_t (*received_clock)(const void *data, uint16_t length);
+        uint8_t (*received_clock)(uint32_t data);
 
         /** @brief DCLK state received callback.
          *
@@ -86,7 +86,7 @@ extern "C"
          * @retval BT_GATT_ITER_CONTINUE To keep notifications enabled.
          * @retval BT_GATT_ITER_STOP To disable notifications.
          */
-        uint8_t (*received_state)(const void *data, uint16_t length);
+        uint8_t (*received_state)(uint8_t data);
 
         /** @brief notifications disabled callback.
          *
