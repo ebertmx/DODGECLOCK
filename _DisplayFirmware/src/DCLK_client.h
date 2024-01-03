@@ -74,7 +74,7 @@ extern "C"
          * @retval BT_GATT_ITER_CONTINUE To keep notifications enabled.
          * @retval BT_GATT_ITER_STOP To disable notifications.
          */
-        uint8_t (*received_clock)(const void *data, uint16_t length);
+        uint8_t (*received_clock)(uint32_t data);
 
         /** @brief DCLK state received callback.
          *
@@ -86,7 +86,7 @@ extern "C"
          * @retval BT_GATT_ITER_CONTINUE To keep notifications enabled.
          * @retval BT_GATT_ITER_STOP To disable notifications.
          */
-        uint8_t (*received_state)(const void *data, uint16_t length);
+        uint8_t (*received_state)(uint8_t data);
 
         /** @brief notifications disabled callback.
          *
@@ -96,7 +96,6 @@ extern "C"
          */
         void (*unsubscribed)(struct bt_gatt_subscribe_params *params);
     };
-
 
     /** @brief DCLK Client structure. */
     struct dclk_client_t
@@ -123,40 +122,6 @@ extern "C"
         struct dclk_client_cb cb;
     };
 
-    /** @brief Assign handles to the DCLK Client instance.
-     *
-     * This function should be called when a link with a peer has been established
-     * to associate the link to this instance of the module. This makes it
-     * possible to handle several links and associate each link to a particular
-     * instance of this module. The GATT attribute handles are provided by the
-     * GATT DB discovery module.
-     *
-     * @param[in] dm Discovery object.
-     * @param[in,out] DCLK DCLK Client instance.
-     *
-     * @retval 0 If the operation was successful.
-     * @retval (-ENOTSUP) Special error code used when UUID
-     *         of the service does not match the expected UUID.
-     * @retval Otherwise, a negative error code is returned.
-     */
-
-
-
-    int dclk_client_handles_assign(struct bt_gatt_dm *dm,
-                                   struct dclk_client_t *DCLK);
-
-    /** @brief Request the peer to start sending notifications for the dclock
-     *	   Characteristic.
-     *
-     * This function enables notifications for the DCLK dclock Characteristic at the peer
-     * by writing to the CCC descriptor of the DCLK dclock Characteristic.
-     *
-     * @param[in,out] DCLK DCLK Client instance.
-     *
-     * @retval 0 If the operation was successful.
-     *           Otherwise, a negative error code is returned.
-     */
-    int dclk_client_subscribe(struct dclk_client_t *DCLK);
 
     /** @brief Initialize the DCLK Client module.
      *
@@ -170,6 +135,27 @@ extern "C"
      *           Otherwise, a negative error code is returned.
      */
     int dclk_client_init(struct dclk_client_cb *callbacks, unsigned int custom_passkey);
+
+    /** @brief ISet the pairing state of the DCLK_client
+     * 
+     * This function starts filtered scanning and allows an authorized
+     * device (with passkey) to bond. 
+     * 
+     * When enable is set to true, pairing is allowed
+     * and active filtered scanning. If already paired,
+     *  paired devices will be deleted
+     * 
+     * If enable is set to false, no scanning or pairing is allowed,
+     * only paired devices will be available.
+     * 
+     *
+     * @param[in] enable set pairing and scanning status of device
+     *
+     * @retval 0 If the operation was successful.
+     *           Otherwise, a negative error code is returned.
+     */
+    int dclk_set_adv (bool enable);
+    
 
 #ifdef __cplusplus
 }

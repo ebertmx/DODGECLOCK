@@ -24,15 +24,13 @@
 
 #include "DCLK.h"
 
-LOG_MODULE_DECLARE(DCLK_host);
+LOG_MODULE_DECLARE(Controller_app, CONFIG_LOG_DEFAULT_LEVEL);
 
 static bool notify_state_enabled;
 static bool notify_clock_enabled;
 static uint8_t state;
 static uint32_t clock;
 static struct dclk_cb dclk_cb;
-
-static bool pairing_enabled;
 
 static unsigned int passkey;
 
@@ -98,6 +96,21 @@ static int setup_accept_list(uint8_t local_id)
 	return bond_cnt;
 }
 
+void pairing_DCLK(struct k_work *work)
+{
+	int err;
+
+	LOG_INF("Advertising with no Accept list \n");
+	// One shot advertizing due to bt_adv_param settings
+	// stops upon connection
+	err = bt_le_adv_start(BT_LE_ADV_CONN_NO_ACCEPT_LIST, ad, ARRAY_SIZE(ad), sd,
+						  ARRAY_SIZE(sd));
+	if (err)
+	{
+		LOG_INF("Advertising failed to start (err %d)\n", err);
+		return;
+	}
+}
 void advertise_DCLK(struct k_work *work)
 {
 	int err = 0;
@@ -107,37 +120,33 @@ void advertise_DCLK(struct k_work *work)
 		LOG_INF("Acceptlist setup failed (err:%d)\n", allowed_cnt);
 	}
 	else
-	{ // if no accept list and pairing enabled
-		if (allowed_cnt == 0 && pairing_enabled)
-		{
-			LOG_INF("Advertising with no Accept list \n");
-			// One shot advertizing due to bt_adv_param settings
-			// stops upon connection
-			err = bt_le_adv_start(BT_LE_ADV_CONN_NO_ACCEPT_LIST, ad, ARRAY_SIZE(ad), sd,
-								  ARRAY_SIZE(sd));
-		}
-		else
-		{
-			LOG_INF("Acceptlist setup number  = %d \n", allowed_cnt);
-			// One shot advertizing due to bt_adv_param settings
-			// stops upon connection
-			err = bt_le_adv_start(BT_LE_ADV_CONN_ACCEPT_LIST, ad, ARRAY_SIZE(ad), sd,
-								  ARRAY_SIZE(sd));
-		}
+	{
+		LOG_INF("Acceptlist setup number  = %d \n", allowed_cnt);
+		// One shot advertizing due to bt_adv_param settings
+		// stops upon connection
+		err = bt_le_adv_start(BT_LE_ADV_CONN_ACCEPT_LIST, ad, ARRAY_SIZE(ad), sd,
+							  ARRAY_SIZE(sd));
 		if (err)
 		{
 			LOG_INF("Advertising failed to start (err %d)\n", err);
 			return;
 		}
-		LOG_INF("Advertising successfully started\n");
 	}
+
+	LOG_INF("Advertising successfully started\n");
 }
 
 K_WORK_DEFINE(advertise_DCLK_work, advertise_DCLK);
+K_WORK_DEFINE(pairing_DCLK_work, pairing_DCLK);
 
-void start_advertising(void)
+void advertising_start(void)
 {
 	k_work_submit(&advertise_DCLK_work);
+}
+
+void pairing_start(void)
+{
+	k_work_submit(&pairing_DCLK_work);
 }
 
 static void on_connected(struct bt_conn *conn, uint8_t err)
@@ -155,7 +164,7 @@ static void on_disconnected(struct bt_conn *conn, uint8_t reason)
 {
 	LOG_INF("Disconnected (reason %u)\n", reason);
 
-	// advertize to try and reconnect
+	// advertize to try and reconnect to paired device
 	k_work_submit(&advertise_DCLK_work);
 }
 
@@ -260,6 +269,29 @@ static struct bt_conn_auth_cb auth_cb_display = {
 	.pairing_confirm = auth_pairing,
 };
 
+static void pairing_complete(struct bt_conn *conn, bool bonded)
+{
+	char addr[BT_ADDR_LE_STR_LEN];
+
+	bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
+
+	LOG_INF("Pairing completed: %s, bonded: %d", addr, bonded);
+}
+
+static void pairing_failed(struct bt_conn *conn, enum bt_security_err reason)
+{
+	char addr[BT_ADDR_LE_STR_LEN];
+
+	bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
+
+	LOG_WRN("Pairing failed conn: %s, reason %d", addr, reason);
+}
+
+static struct bt_conn_auth_info_cb conn_auth_info_callbacks = {
+	.pairing_complete = pairing_complete,
+	.pairing_failed = pairing_failed,
+};
+
 /* DCLK Service Declaration */
 BT_GATT_SERVICE_DEFINE(
 	dclk_svc, BT_GATT_PRIMARY_SERVICE(BT_UUID_DCLK),
@@ -280,6 +312,13 @@ int dclk_init(struct dclk_cb *callbacks, unsigned int custom_passkey)
 {
 	int err;
 
+	err = bt_enable(NULL);
+	if (err)
+	{
+		LOG_ERR("Bluetooth enable failed (err %d)\n", err);
+		return err;
+	}
+
 	err = bt_conn_auth_cb_register(&auth_cb_display);
 	if (err)
 	{
@@ -287,11 +326,18 @@ int dclk_init(struct dclk_cb *callbacks, unsigned int custom_passkey)
 		return err;
 	}
 
-	err = bt_enable(NULL);
+	err = bt_conn_auth_info_cb_register(&conn_auth_info_callbacks);
 	if (err)
 	{
-		LOG_ERR("Bluetooth enable failed (err %d)\n", err);
-		return err;
+		LOG_INF("Bluetooth info register failed (err %d)\n", err);
+		return 0;
+	}
+
+	bt_conn_cb_register(&connection_callbacks);
+	if (callbacks)
+	{
+		dclk_cb.clock_cb = callbacks->clock_cb;
+		dclk_cb.state_cb = callbacks->state_cb;
 	}
 
 	passkey = custom_passkey;
@@ -305,42 +351,58 @@ int dclk_init(struct dclk_cb *callbacks, unsigned int custom_passkey)
 	if (IS_ENABLED(CONFIG_SETTINGS))
 	{
 		err = settings_load();
+		if (err)
+		{
+			LOG_ERR("Bluetooth settings load failed (err %d)\n", err);
+			return err;
+		}
 	}
 
-	if (err)
-	{
-		LOG_ERR("Bluetooth load settings failed (err %d)\n", err);
-		return err;
-	}
 
-	// For testing only
-	err = bt_unpair(BT_ID_DEFAULT, BT_ADDR_LE_ANY);
-	pairing_enabled = true;
+	pairing_start();
 
-	bt_conn_cb_register(&connection_callbacks);
-	if (callbacks)
-	{
-		dclk_cb.clock_cb = callbacks->clock_cb;
-		dclk_cb.state_cb = callbacks->state_cb;
-	}
-
-	start_advertising();
+	// dclk_set_adv(false);
 
 	return 0;
 }
 
-int dclk_pairing(bool enable)
+int dclk_set_adv(bool pair_enable)
 {
-	int err = bt_unpair(BT_ID_DEFAULT, BT_ADDR_LE_ANY);
-	if (err)
+	int err;
+	if (pair_enable)
 	{
-		LOG_INF("Cannot delete bond (err: %d)\n", err);
+		int err = bt_unpair(BT_ID_DEFAULT, BT_ADDR_LE_ANY);
+		if (err)
+		{
+			LOG_INF("Cannot delete bond (err: %d)\n", err);
+		}
+		else
+		{
+			LOG_INF("Bond deleted succesfully \n");
+		}
+		err = bt_le_adv_stop();
+		if (err)
+		{
+			LOG_ERR("Failed to stop active advertizing (err %d)", err);
+		}
+		pairing_start();
 	}
 	else
 	{
-		LOG_INF("Bond deleted succesfully \n");
+		if (IS_ENABLED(CONFIG_SETTINGS))
+		{
+			err = settings_load();
+		}
+
+		LOG_INF("Settings Loaded");
+
+		if (err)
+		{
+			LOG_ERR("Bluetooth load settings failed (err %d)\n", err);
+			return err;
+		}
+		advertising_start();
 	}
-	start_advertising();
 
 	return 0;
 }

@@ -82,7 +82,7 @@ extern "C"
 	 * @retval 0 If the operation was successful.
 	 *           Otherwise, a (negative) error code is returned.
 	 */
-	int dclk_pairing(bool enable);
+	int dclk_set_adv(bool enable);
 
 	/** @brief Send the clock state as notification.
 	 *

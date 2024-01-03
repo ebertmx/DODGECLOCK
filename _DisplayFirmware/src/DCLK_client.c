@@ -18,20 +18,18 @@
 
 #include "DCLK_client.h"
 
-static unsigned int display_passkey = 123456;
+static unsigned int passkey_display = 123456;
 
 static struct bt_conn *default_conn;
 struct dclk_client_t DCLK_client;
 
-#define BT_UUID_DCLK BT_UUID_DECLARE_128(BT_UUID_DCLK_VAL)
-#define BT_UUID_DCLK_VAL BT_UUID_128_ENCODE(0x00001553, 0x1212, 0xefde, 0x1523, 0x785feabcd123)
-
 // #define LOG_MODULE_NAME DCLK_CLIENT
-LOG_MODULE_DECLARE(Display_app, CONFIG_LOG_DEFAULT_LEVEL);
+LOG_MODULE_DECLARE(Display_app, CONFIG_FATAL_ERROR_LOG_LEVEL);
 
 enum
 {
 	DCLK_INITIALIZED,
+	DCLK_CONNECTED,
 	DCLK_CLOCK_NOTIF_ENABLED,
 	DCLK_STATE_NOTIF_ENABLED
 };
@@ -49,10 +47,10 @@ static uint8_t on_received(struct bt_conn *conn,
 
 	if (params->value_handle == DCLK_client.dclock_notif_params.value_handle)
 	{
-		LOG_INF("D_CLOCK updated");
+		LOG_INF("D_CLOCK updated %d", *(uint32_t *)data);
 		if (DCLK_client.cb.received_clock)
 		{
-			return DCLK_client.cb.received_clock(data, length);
+			return DCLK_client.cb.received_clock(*(uint32_t *)data);
 		}
 	}
 	else if (params->value_handle == DCLK_client.dstate_notif_params.value_handle)
@@ -60,7 +58,7 @@ static uint8_t on_received(struct bt_conn *conn,
 		LOG_INF("D_STATE updated");
 		if (DCLK_client.cb.received_state)
 		{
-			return DCLK_client.cb.received_state(data, length);
+			return DCLK_client.cb.received_state(*(uint8_t *)data);
 		}
 	}
 	return BT_GATT_ITER_CONTINUE;
@@ -93,6 +91,10 @@ int dclk_client_subscribe(struct dclk_client_t *DCLK_c)
 		LOG_DBG("[SUBSCRIBED DCLOCK]");
 	}
 
+	if (atomic_test_and_set_bit(&DCLK_c->conn_state, DCLK_STATE_NOTIF_ENABLED))
+	{
+		return -EALREADY;
+	}
 	DCLK_c->dstate_notif_params.notify = on_received;
 	DCLK_c->dstate_notif_params.value = BT_GATT_CCC_NOTIFY;
 	DCLK_c->dstate_notif_params.value_handle = DCLK_c->handles.dstate;
@@ -108,10 +110,10 @@ int dclk_client_subscribe(struct dclk_client_t *DCLK_c)
 	}
 	else
 	{
-		LOG_DBG("[SUBSCRIBED DCLOCK]");
+		LOG_DBG("[SUBSCRIBED DSTATE]");
 	}
 
-	return err;
+	return 0;
 }
 
 int dclk_client_handles_assign(struct bt_gatt_dm *dm,
@@ -197,14 +199,22 @@ int dclk_client_handles_assign(struct bt_gatt_dm *dm,
 static void discovery_complete(struct bt_gatt_dm *dm,
 							   void *context)
 {
+	int err;
 	LOG_INF("Service discovery completed");
 	struct dclk_client_t *DCLK = context;
 
 	dclk_client_handles_assign(dm, DCLK);
 
-	dclk_client_subscribe(DCLK);
+	err = dclk_client_subscribe(DCLK);
+	if (err)
+	{
+		LOG_ERR("COULD NOT SUBSCRIBE");
+		return;
+	}
 
 	bt_gatt_dm_data_release(dm);
+
+	return;
 }
 
 static void discovery_service_not_found(struct bt_conn *conn,
@@ -286,6 +296,8 @@ static void connected(struct bt_conn *conn, uint8_t conn_err)
 		return;
 	}
 
+	atomic_set_bit(&DCLK_client.conn_state, DCLK_CONNECTED);
+
 	LOG_INF("Connected: %s", addr);
 
 	static struct bt_gatt_exchange_params exchange_params;
@@ -296,14 +308,16 @@ static void connected(struct bt_conn *conn, uint8_t conn_err)
 	{
 		LOG_WRN("MTU exchange failed (err %d)", err);
 	}
-	LOG_INF("Security %d", bt_conn_get_security(conn));
 
+	LOG_INF("Security %d", bt_conn_get_security(conn));
 	err = bt_conn_set_security(conn, BT_SECURITY_L4);
 	if (err)
 	{
 		LOG_WRN("Failed to set security: %d", err);
-
-		// gatt_discover(conn);
+	}
+	else
+	{
+		LOG_INF("Security set complete");
 	}
 
 	err = bt_scan_stop();
@@ -387,37 +401,6 @@ static void scan_connecting(struct bt_scan_device_info *device_info,
 	default_conn = bt_conn_ref(conn);
 }
 
-BT_SCAN_CB_INIT(scan_cb, scan_filter_match, NULL,
-				scan_connecting_error, scan_connecting);
-
-static int scan_init(void)
-{
-	int err;
-	struct bt_scan_init_param scan_init = {
-		.connect_if_match = 1,
-	};
-
-	bt_scan_init(&scan_init);
-	bt_scan_cb_register(&scan_cb);
-
-	err = bt_scan_filter_add(BT_SCAN_FILTER_TYPE_UUID, BT_UUID_DCLK);
-	if (err)
-	{
-		LOG_ERR("Scanning filters cannot be set (err %d)", err);
-		return err;
-	}
-
-	err = bt_scan_filter_enable(BT_SCAN_UUID_FILTER, false);
-	if (err)
-	{
-		LOG_ERR("Filters cannot be turned on (err %d)", err);
-		return err;
-	}
-
-	LOG_INF("Scan module initialized");
-	return err;
-}
-
 static void pairing_complete(struct bt_conn *conn, bool bonded)
 {
 	char addr[BT_ADDR_LE_STR_LEN];
@@ -462,6 +445,37 @@ static struct bt_conn_auth_cb auth_cb_display = {
 	.pairing_confirm = NULL, // auth_pairing,
 };
 
+BT_SCAN_CB_INIT(scan_cb, scan_filter_match, NULL,
+				scan_connecting_error, scan_connecting);
+
+static int scan_init(void)
+{
+	int err;
+	struct bt_scan_init_param scan_init = {
+		.connect_if_match = 1,
+	};
+
+	bt_scan_init(&scan_init);
+	bt_scan_cb_register(&scan_cb);
+
+	err = bt_scan_filter_add(BT_SCAN_FILTER_TYPE_UUID, BT_UUID_DCLK);
+	if (err)
+	{
+		LOG_ERR("Scanning filters cannot be set (err %d)", err);
+		return err;
+	}
+
+	err = bt_scan_filter_enable(BT_SCAN_UUID_FILTER, false);
+	if (err)
+	{
+		LOG_ERR("Filters cannot be turned on (err %d)", err);
+		return err;
+	}
+
+	LOG_INF("Scan module initialized");
+	return err;
+}
+
 int dclk_client_init(struct dclk_client_cb *callbacks, unsigned int custom_passkey)
 {
 
@@ -488,8 +502,8 @@ int dclk_client_init(struct dclk_client_cb *callbacks, unsigned int custom_passk
 		LOG_INF("Bluetooth initialized");
 	}
 
-	display_passkey = custom_passkey;
-	err = bt_passkey_set(display_passkey);
+	passkey_display = custom_passkey;
+	err = bt_passkey_set(passkey_display);
 	if (err)
 	{
 		LOG_INF("Bluetooth passkey set failed (err %d)\n", err);
@@ -510,14 +524,6 @@ int dclk_client_init(struct dclk_client_cb *callbacks, unsigned int custom_passk
 		return 0;
 	}
 
-	if (IS_ENABLED(CONFIG_SETTINGS))
-	{
-		settings_load();
-	}
-
-	// for Testing
-	err = bt_unpair(BT_ID_DEFAULT, BT_ADDR_LE_ANY);
-
 	err = scan_init();
 	if (err != 0)
 	{
@@ -525,14 +531,55 @@ int dclk_client_init(struct dclk_client_cb *callbacks, unsigned int custom_passk
 		return 0;
 	}
 
+	if (IS_ENABLED(CONFIG_SETTINGS))
+	{
+		err = settings_load();
+		if(err)
+		{
+			LOG_ERR("FAILED TO LOAD SETTINGS (err %d)", err);
+		}
+	}
+
 	err = bt_scan_start(BT_SCAN_TYPE_SCAN_ACTIVE);
 	if (err)
 	{
 		LOG_ERR("Scanning failed to start (err %d)", err);
-		return 0;
+		return err;
+	}
+
+	return 0;
+}
+
+int dclk_set_adv(bool enable)
+{
+	int err;
+	if (enable)
+	{
+		// for Testing
+		err = bt_unpair(BT_ID_DEFAULT, BT_ADDR_LE_ANY);
+		if (err)
+		{
+			LOG_ERR("Unable to delete paired devices(err %d)", err);
+			return err;
+		}
+	}
+	else
+	{
+		if (IS_ENABLED(CONFIG_SETTINGS))
+		{
+			settings_load();
+		}
+
+		LOG_INF("Settings Loaded");
+	}
+
+	err = bt_scan_start(BT_SCAN_TYPE_SCAN_ACTIVE);
+	if (err)
+	{
+		LOG_ERR("Scanning failed to start (err %d)", err);
+		return err;
 	}
 
 	LOG_INF("Scanning successfully started");
-
 	return 0;
 }

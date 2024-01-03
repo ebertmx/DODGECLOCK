@@ -57,9 +57,10 @@ static void button_pressed(const struct device *dev, struct gpio_callback *cb, u
 
 	if (pins == BIT(button0.pin))
 	{
-		d_state = 0;
-		d_clock = 10000;
-		k_timer_start(&d_timer, K_MSEC(d_clock), K_NO_WAIT);
+		k_work_submit(&initiate_pairing);
+	//	d_state = 0;
+	//	d_clock = 10000;
+	//	k_timer_start(&d_timer, K_MSEC(d_clock), K_NO_WAIT);
 	}
 	else if (pins == BIT(button1.pin))
 	{

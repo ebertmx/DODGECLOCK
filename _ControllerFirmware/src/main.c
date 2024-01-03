@@ -30,6 +30,11 @@ LOG_MODULE_REGISTER(Controller_app, LOG_LEVEL_INF);
 
 #define SYNC_INTERVAL 300
 
+#define SW0_NODE DT_NODELABEL(button0)
+
+static const struct gpio_dt_spec button0 = GPIO_DT_SPEC_GET(SW0_NODE, gpios);
+
+
 /*DCLK Service and BLE*/
 static uint32_t app_clock_cb(void)
 {
@@ -48,7 +53,7 @@ static struct dclk_cb app_callbacks = {
 
 static uint8_t pair_cb(void)
 {
-	dclk_pairing(true);
+	dclk_set_adv(true);
 }
 static uint8_t user_cb(void)
 {
