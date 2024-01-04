@@ -27,7 +27,7 @@ struct dclk_client_t DCLK_client;
 #define BT_UUID_DCLK_VAL BT_UUID_128_ENCODE(0x00001553, 0x1212, 0xefde, 0x1523, 0x785feabcd123)
 
 // #define LOG_MODULE_NAME DCLK_CLIENT
-LOG_MODULE_DECLARE(Display_app, CONFIG_LOG_DEFAULT_LEVEL);
+LOG_MODULE_DECLARE(Display_app, LOG_LEVEL_DBG);
 
 enum
 {
@@ -49,18 +49,18 @@ static uint8_t on_received(struct bt_conn *conn,
 
 	if (params->value_handle == DCLK_client.dclock_notif_params.value_handle)
 	{
-		LOG_INF("D_CLOCK updated");
+		//LOG_INF("D_CLOCK updated");
 		if (DCLK_client.cb.received_clock)
 		{
-			return DCLK_client.cb.received_clock(data, length);
+			return DCLK_client.cb.received_clock(*(uint32_t*)data);
 		}
 	}
 	else if (params->value_handle == DCLK_client.dstate_notif_params.value_handle)
 	{
-		LOG_INF("D_STATE updated");
+		//LOG_INF("D_STATE updated");
 		if (DCLK_client.cb.received_state)
 		{
-			return DCLK_client.cb.received_state(data, length);
+			return DCLK_client.cb.received_state(*(uint8_t*)data);
 		}
 	}
 	return BT_GATT_ITER_CONTINUE;
@@ -70,11 +70,9 @@ int dclk_client_subscribe(struct dclk_client_t *DCLK_c)
 {
 	int err;
 
-	if (atomic_test_and_set_bit(&DCLK_c->conn_state, DCLK_CLOCK_NOTIF_ENABLED))
-	{
-		return -EALREADY;
-	}
-
+	atomic_set_bit(&DCLK_c->conn_state, DCLK_CLOCK_NOTIF_ENABLED);
+	
+	LOG_DBG("Subsribing");
 	DCLK_c->dclock_notif_params.notify = on_received;
 	DCLK_c->dclock_notif_params.value = BT_GATT_CCC_NOTIFY;
 	DCLK_c->dclock_notif_params.value_handle = DCLK_c->handles.dclock;
@@ -93,6 +91,7 @@ int dclk_client_subscribe(struct dclk_client_t *DCLK_c)
 		LOG_DBG("[SUBSCRIBED DCLOCK]");
 	}
 
+	
 	DCLK_c->dstate_notif_params.notify = on_received;
 	DCLK_c->dstate_notif_params.value = BT_GATT_CCC_NOTIFY;
 	DCLK_c->dstate_notif_params.value_handle = DCLK_c->handles.dstate;
@@ -201,7 +200,7 @@ static void discovery_complete(struct bt_gatt_dm *dm,
 	struct dclk_client_t *DCLK = context;
 
 	dclk_client_handles_assign(dm, DCLK);
-
+	LOG_DBG("Attempting to Subscribe");
 	dclk_client_subscribe(DCLK);
 
 	bt_gatt_dm_data_release(dm);

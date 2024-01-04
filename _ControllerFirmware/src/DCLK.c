@@ -24,7 +24,9 @@
 
 #include "DCLK.h"
 
+
 LOG_MODULE_DECLARE(Controller_app, LOG_LEVEL_DBG);
+
 
 static bool notify_state_enabled;
 static bool notify_clock_enabled;
@@ -346,27 +348,28 @@ int dclk_init(struct dclk_cb *callbacks, unsigned int custom_passkey)
 		return err;
 	}
 
-	if (IS_ENABLED(CONFIG_SETTINGS))
-	{
-		err = settings_load();
-	}
-
-	if (err)
-	{
-		LOG_ERR("Bluetooth load settings failed (err %d)\n", err);
-		return err;
-	}
-
-	// For testing only
-	//	err = bt_unpair(BT_ID_DEFAULT, BT_ADDR_LE_ANY);
-	//	pairing_enabled = true;
-
 	bt_conn_cb_register(&connection_callbacks);
 	if (callbacks)
 	{
 		dclk_cb.clock_cb = callbacks->clock_cb;
 		dclk_cb.state_cb = callbacks->state_cb;
 	}
+
+	if (IS_ENABLED(CONFIG_SETTINGS))
+	{
+		err = settings_load();
+		if (err)
+		{
+			LOG_ERR("Bluetooth load settings failed (err %d)\n", err);
+			return err;
+		}
+	}
+
+	// For testing only
+
+	// err = bt_unpair(BT_ID_DEFAULT, BT_ADDR_LE_ANY);
+	// pairing_enabled = true;
+	pairing_enabled = false;
 
 	pairing_enabled = false;
 	start_advertising();
