@@ -287,15 +287,6 @@ static void connected(struct bt_conn *conn, uint8_t conn_err)
 
 	LOG_INF("Connected: %s", addr);
 
-	//static struct bt_gatt_exchange_params exchange_params;
-
-	//exchange_params.func = exchange_func;
-	//err = bt_gatt_exchange_mtu(conn, &exchange_params);
-	// if (err)
-	// {
-	// 	LOG_WRN("MTU exchange failed (err %d)", err);
-	// }
-
 	err = bt_conn_set_security(conn, BT_SECURITY_L4);
 	if (err)
 	{
@@ -448,14 +439,25 @@ static void auth_cancel(struct bt_conn *conn)
 
 static void passkey_confirm(struct bt_conn *conn, unsigned int passkey)
 {
+	bt_conn_auth_passkey_confirm(conn);
+}
+static void passkey_entry(struct bt_conn *conn)
+{
+	LOG_INF("Sending entry passkey = %d", 123456);
+	bt_conn_auth_passkey_entry(conn, 123456);
 }
 
+void passkey_display(struct bt_conn *conn, unsigned int passkey)
+{
+	LOG_INF("Controller passkey = %ld", passkey);
+}
+
+
 static struct bt_conn_auth_cb auth_cb_display = {
-	.passkey_display = NULL,
-	.passkey_entry = NULL,
+	.passkey_display = passkey_display,
+	.passkey_entry = NULL,// passkey_entry,
 	.passkey_confirm = passkey_confirm,
 	.cancel = auth_cancel,
-	.pairing_confirm = NULL, // auth_pairing,
 };
 
 int dclk_client_init(struct dclk_client_cb *callbacks, unsigned int custom_passkey)
@@ -485,7 +487,7 @@ int dclk_client_init(struct dclk_client_cb *callbacks, unsigned int custom_passk
 	}
 
 	display_passkey = custom_passkey;
-	err = bt_passkey_set(display_passkey);
+	//err = bt_passkey_set(display_passkey);
 	if (err)
 	{
 		LOG_INF("Bluetooth passkey set failed (err %d)\n", err);
