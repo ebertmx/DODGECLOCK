@@ -24,7 +24,7 @@
 
 #include "DCLK.h"
 
-LOG_MODULE_DECLARE(DCLK_host);
+LOG_MODULE_DECLARE(Controller_app, LOG_LEVEL_DBG);
 
 static bool notify_state_enabled;
 static bool notify_clock_enabled;
@@ -102,6 +102,7 @@ void advertise_DCLK(struct k_work *work)
 {
 	int err = 0;
 	int allowed_cnt = setup_accept_list(BT_ID_DEFAULT);
+	LOG_DBG("bond_count = %d", allowed_cnt);
 	if (allowed_cnt < 0)
 	{
 		LOG_INF("Acceptlist setup failed (err:%d)\n", allowed_cnt);
@@ -129,7 +130,7 @@ void advertise_DCLK(struct k_work *work)
 			LOG_INF("Advertising failed to start (err %d)\n", err);
 			return;
 		}
-		LOG_INF("Advertising successfully started\n");
+		// LOG_INF("Advertising successfully started\n");
 	}
 }
 
@@ -149,6 +150,8 @@ static void on_connected(struct bt_conn *conn, uint8_t err)
 	}
 
 	LOG_INF("Connected\n");
+
+	//bt_conn_set_security(conn, BT_SECURITY_L4);
 }
 
 static void on_disconnected(struct bt_conn *conn, uint8_t reason)
@@ -252,12 +255,46 @@ static void passkey_entry(struct bt_conn *conn)
 	bt_conn_auth_passkey_entry(conn, passkey);
 }
 
+void passkey_display(struct bt_conn *conn, unsigned int passkey)
+{
+	LOG_INF("Controller passkey = %ld", passkey);
+}
+
+
+void passkey_confirm(struct bt_conn *conn, unsigned int passkey)
+{
+	LOG_INF("Confirm Passkey = %d", passkey);
+	bt_conn_auth_passkey_confirm(conn);
+}
 static struct bt_conn_auth_cb auth_cb_display = {
-	.passkey_display = NULL,
-	.passkey_confirm = NULL,
+	.passkey_display = passkey_display,
+	.passkey_confirm = passkey_confirm,
 	.passkey_entry = passkey_entry,
 	.cancel = auth_cancel,
 	.pairing_confirm = auth_pairing,
+};
+
+static void pairing_complete(struct bt_conn *conn, bool bonded)
+{
+	char addr[BT_ADDR_LE_STR_LEN];
+
+	bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
+
+	LOG_INF("Pairing completed: %s, bonded: %d", addr, bonded);
+}
+
+static void pairing_failed(struct bt_conn *conn, enum bt_security_err reason)
+{
+	char addr[BT_ADDR_LE_STR_LEN];
+
+	bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
+
+	LOG_WRN("Pairing failed conn: %s, reason %d", addr, reason);
+}
+
+static struct bt_conn_auth_info_cb conn_auth_info_callbacks = {
+	.pairing_complete = pairing_complete,
+	.pairing_failed = pairing_failed,
 };
 
 /* DCLK Service Declaration */
@@ -280,13 +317,6 @@ int dclk_init(struct dclk_cb *callbacks, unsigned int custom_passkey)
 {
 	int err;
 
-	err = bt_conn_auth_cb_register(&auth_cb_display);
-	if (err)
-	{
-		LOG_ERR("Bluetooth authetication register failed (err %d)\n", err);
-		return err;
-	}
-
 	err = bt_enable(NULL);
 	if (err)
 	{
@@ -294,8 +324,22 @@ int dclk_init(struct dclk_cb *callbacks, unsigned int custom_passkey)
 		return err;
 	}
 
+	err = bt_conn_auth_cb_register(&auth_cb_display);
+	if (err)
+	{
+		LOG_ERR("Bluetooth authetication register failed (err %d)\n", err);
+		return err;
+	}
+
+	err = bt_conn_auth_info_cb_register(&conn_auth_info_callbacks);
+	if (err)
+	{
+		LOG_INF("Bluetooth info register failed (err %d)\n", err);
+		return 0;
+	}
+
 	passkey = custom_passkey;
-	bt_passkey_set(passkey);
+	//bt_passkey_set(passkey);
 	if (err)
 	{
 		LOG_ERR("Bluetooth passkey set failed (err %d)\n", err);
@@ -314,8 +358,8 @@ int dclk_init(struct dclk_cb *callbacks, unsigned int custom_passkey)
 	}
 
 	// For testing only
-	err = bt_unpair(BT_ID_DEFAULT, BT_ADDR_LE_ANY);
-	pairing_enabled = true;
+	//	err = bt_unpair(BT_ID_DEFAULT, BT_ADDR_LE_ANY);
+	//	pairing_enabled = true;
 
 	bt_conn_cb_register(&connection_callbacks);
 	if (callbacks)
@@ -324,6 +368,7 @@ int dclk_init(struct dclk_cb *callbacks, unsigned int custom_passkey)
 		dclk_cb.state_cb = callbacks->state_cb;
 	}
 
+	pairing_enabled = false;
 	start_advertising();
 
 	return 0;
@@ -331,16 +376,23 @@ int dclk_init(struct dclk_cb *callbacks, unsigned int custom_passkey)
 
 int dclk_pairing(bool enable)
 {
-	int err = bt_unpair(BT_ID_DEFAULT, BT_ADDR_LE_ANY);
-	if (err)
+	bt_le_adv_stop();
+	pairing_enabled = !pairing_enabled;
+
+	if (pairing_enabled)
 	{
-		LOG_INF("Cannot delete bond (err: %d)\n", err);
+
+		int err = bt_unpair(BT_ID_DEFAULT, BT_ADDR_LE_ANY);
+		if (err)
+		{
+			LOG_INF("Cannot delete bond (err: %d)\n", err);
+		}
+		else
+		{
+			LOG_INF("Bond deleted succesfully \n");
+		}
+		start_advertising();
 	}
-	else
-	{
-		LOG_INF("Bond deleted succesfully \n");
-	}
-	start_advertising();
 
 	return 0;
 }

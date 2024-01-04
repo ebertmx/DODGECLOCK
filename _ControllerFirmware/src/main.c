@@ -48,6 +48,7 @@ static struct dclk_cb app_callbacks = {
 
 static uint8_t pair_cb(void)
 {
+	LOG_INF("Allow pairing");
 	dclk_pairing(true);
 }
 static uint8_t user_cb(void)
