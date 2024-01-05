@@ -116,6 +116,7 @@ void advertise_DCLK(struct k_work *work)
 			// stops upon connection
 			err = bt_le_adv_start(BT_LE_ADV_CONN_NO_ACCEPT_LIST, ad, ARRAY_SIZE(ad), sd,
 								  ARRAY_SIZE(sd));
+			pairing_enabled = false;
 		}
 		else
 		{
@@ -151,7 +152,7 @@ static void on_connected(struct bt_conn *conn, uint8_t err)
 
 	LOG_INF("Connected\n");
 
-	//bt_conn_set_security(conn, BT_SECURITY_L4);
+	// bt_conn_set_security(conn, BT_SECURITY_L4);
 }
 
 static void on_disconnected(struct bt_conn *conn, uint8_t reason)
@@ -237,7 +238,7 @@ static void auth_pairing(struct bt_conn *conn)
 	char addr[BT_ADDR_LE_STR_LEN];
 	bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
 	int err = bt_conn_auth_pairing_confirm(conn);
-	LOG_INF("Pairing Authorized %d: %s\n", err, addr);
+	printk("Pairing Authorized %d: %s\n", err, addr);
 }
 
 static void auth_cancel(struct bt_conn *conn)
@@ -257,7 +258,7 @@ static void passkey_entry(struct bt_conn *conn)
 
 void passkey_display(struct bt_conn *conn, unsigned int passkey)
 {
-	LOG_INF("Controller passkey = %d", passkey);
+	LOG_INF("Controller passkey = %ld", passkey);
 }
 
 void passkey_confirm(struct bt_conn *conn, unsigned int passkey)
@@ -271,7 +272,6 @@ static struct bt_conn_auth_cb auth_cb_display = {
 	.passkey_entry = passkey_entry,
 	.cancel = auth_cancel,
 	.pairing_confirm = auth_pairing,
-	.oob_data_request = NULL,
 };
 
 static void pairing_complete(struct bt_conn *conn, bool bonded)
@@ -317,12 +317,17 @@ int dclk_init(struct dclk_cb *callbacks, unsigned int custom_passkey)
 {
 	int err;
 
-
 	bt_conn_cb_register(&connection_callbacks);
 	if (callbacks)
 	{
 		dclk_cb.clock_cb = callbacks->clock_cb;
 		dclk_cb.state_cb = callbacks->state_cb;
+	}
+	err = bt_enable(NULL);
+	if (err)
+	{
+		LOG_ERR("Bluetooth enable failed (err %d)\n", err);
+		return err;
 	}
 
 	err = bt_conn_auth_cb_register(&auth_cb_display);
@@ -339,13 +344,6 @@ int dclk_init(struct dclk_cb *callbacks, unsigned int custom_passkey)
 		return 0;
 	}
 
-	err = bt_enable(NULL);
-	if (err)
-	{
-		LOG_ERR("Bluetooth enable failed (err %d)\n", err);
-		return err;
-	}
-
 	if (IS_ENABLED(CONFIG_SETTINGS))
 	{
 		err = settings_load();
@@ -357,7 +355,8 @@ int dclk_init(struct dclk_cb *callbacks, unsigned int custom_passkey)
 		LOG_INF("BLE settings loaded \n");
 	}
 
-	pairing_enabled = false;
+	pairing_enabled = true;
+
 	start_advertising();
 
 	return 0;

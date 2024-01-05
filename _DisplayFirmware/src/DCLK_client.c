@@ -20,7 +20,7 @@
 
 static unsigned int display_passkey = 123456;
 
-static struct bt_conn *default_conn;
+//static struct bt_conn *default_conn;
 struct dclk_client_t DCLK_client;
 
 #define BT_UUID_DCLK BT_UUID_DECLARE_128(BT_UUID_DCLK_VAL)
@@ -228,11 +228,6 @@ static void gatt_discover(struct bt_conn *conn)
 {
 	int err;
 
-	// if (conn != default_conn)
-	// {
-	// 	return;
-	// }
-
 	err = bt_gatt_dm_start(conn,
 						   BT_UUID_DCLK,
 						   &discovery_cb,
@@ -259,43 +254,24 @@ static void exchange_func(struct bt_conn *conn, uint8_t err, struct bt_gatt_exch
 
 static void connected(struct bt_conn *conn, uint8_t conn_err)
 {
-	char addr[BT_ADDR_LE_STR_LEN];
 	int err;
+	LOG_INF("Connected");
 
-	bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
-
-	if (conn_err)
+	err = bt_scan_stop();
+	if ((!err) && (err != -EALREADY))
 	{
-		LOG_INF("Failed to connect to %s (%d)", addr, conn_err);
-
-		if (default_conn == conn)
-		{
-			bt_conn_unref(default_conn);
-			default_conn = NULL;
-
-			err = bt_scan_start(BT_SCAN_TYPE_SCAN_ACTIVE);
-			if (err)
-			{
-				LOG_ERR("Scanning failed to start (err %d)",
-						err);
-			}
-		}
-
-		return;
+		LOG_ERR("Stop LE scan failed (err %d)", err);
 	}
-
-	LOG_INF("Connected: %s", addr);
 
 	err = bt_conn_set_security(conn, BT_SECURITY_L4);
 	if (err)
 	{
 		LOG_WRN("Failed to set security: %d", err);
 	}
-
-	err = bt_scan_stop();
-	if ((!err) && (err != -EALREADY))
+	else
 	{
-		LOG_ERR("Stop LE scan failed (err %d)", err);
+
+		LOG_INF("Security Set");
 	}
 
 	gatt_discover(conn);
@@ -359,7 +335,7 @@ static void scan_connecting_error(struct bt_scan_device_info *device_info)
 static void scan_connecting(struct bt_scan_device_info *device_info,
 							struct bt_conn *conn)
 {
-	default_conn = bt_conn_ref(conn);
+	//default_conn = bt_conn_ref(conn);
 }
 
 BT_SCAN_CB_INIT(scan_cb, scan_filter_match, NULL,
@@ -437,22 +413,13 @@ static void passkey_entry(struct bt_conn *conn)
 
 void passkey_display(struct bt_conn *conn, unsigned int passkey)
 {
-	LOG_INF("Controller passkey = %d", passkey);
-}
-
-static void pairing_confirm(struct bt_conn *conn)
-{
-	char addr[BT_ADDR_LE_STR_LEN];
-	bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
-	int err = bt_conn_auth_pairing_confirm(conn);
-	LOG_INF("Pairing Authorized %d: %s\n", err, addr);
+	LOG_INF("Controller passkey = %ld", passkey);
 }
 
 static struct bt_conn_auth_cb auth_cb_display = {
 	.passkey_display = passkey_display,
-	.passkey_entry = passkey_entry,
+	.passkey_entry = NULL, // passkey_entry,
 	.passkey_confirm = passkey_confirm,
-	.pairing_confirm = pairing_confirm,
 	.cancel = auth_cancel,
 };
 
@@ -471,6 +438,17 @@ int dclk_client_init(struct dclk_client_cb *callbacks, unsigned int custom_passk
 		LOG_ERR("No DCLK callbacks set");
 	}
 
+	err = bt_enable(NULL);
+	if (err)
+	{
+		LOG_INF("Bluetooth init failed (err %d)", err);
+		return 0;
+	}
+	else
+	{
+		LOG_INF("Bluetooth initialized");
+	}
+
 	err = bt_conn_auth_cb_register(&auth_cb_display);
 	if (err)
 	{
@@ -485,17 +463,6 @@ int dclk_client_init(struct dclk_client_cb *callbacks, unsigned int custom_passk
 		return 0;
 	}
 
-	err = bt_enable(NULL);
-	if (err)
-	{
-		LOG_INF("Bluetooth init failed (err %d)", err);
-		return 0;
-	}
-	else
-	{
-		LOG_INF("Bluetooth initialized");
-	}
-
 	if (IS_ENABLED(CONFIG_SETTINGS))
 	{
 		settings_load();
@@ -507,6 +474,7 @@ int dclk_client_init(struct dclk_client_cb *callbacks, unsigned int custom_passk
 		LOG_INF("Could not load settings");
 	}
 
+
 	err = scan_init();
 	if (err != 0)
 	{
@@ -515,6 +483,39 @@ int dclk_client_init(struct dclk_client_cb *callbacks, unsigned int custom_passk
 	}
 
 	err = bt_scan_start(BT_SCAN_TYPE_SCAN_ACTIVE);
+	if (err)
+	{
+		LOG_ERR("Scanning failed to start (err %d)", err);
+		return 0;
+	}
+
+	LOG_INF("Scanning successfully started");
+
+	return 0;
+}
+
+
+int dclk_pairing(bool enable)
+{
+	bt_scan_stop();
+
+	int err = bt_unpair(BT_ID_DEFAULT, BT_ADDR_LE_ANY);
+	if (err)
+	{
+		LOG_INF("Cannot delete bond (err: %d)\n", err);
+	}
+	else
+	{
+		LOG_INF("Bond deleted succesfully \n");
+	}
+
+	while(!bt_is_ready())
+	{
+		LOG_INF("BT_NOT_READY");
+	}
+
+	err = bt_scan_start(BT_SCAN_TYPE_SCAN_ACTIVE);
+
 	if (err)
 	{
 		LOG_ERR("Scanning failed to start (err %d)", err);

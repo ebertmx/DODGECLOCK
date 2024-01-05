@@ -171,6 +171,22 @@ extern "C"
      */
     int dclk_client_init(struct dclk_client_cb *callbacks, unsigned int custom_passkey);
 
+
+    
+	/** @brief Enables/Disables advertizing and
+	 * pairing of DCLK blueooth service
+	 *
+	 * This starts or stops advertizing immediately and
+	 * sets the pairing state to enable
+	 *
+	 * @param[in] enable enables on true and disables on false
+	 *
+	 * @retval 0 If the operation was successful.
+	 *           Otherwise, a (negative) error code is returned.
+	 */
+	int dclk_pairing(bool enable);
+
+
 #ifdef __cplusplus
 }
 #endif

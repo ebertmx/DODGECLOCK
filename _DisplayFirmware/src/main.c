@@ -12,6 +12,7 @@
 #include <zephyr/logging/log.h>
 #include "DCLK_client.h"
 
+#include "Interface.h"
 
 LOG_MODULE_REGISTER(Display_app, CONFIG_LOG_DEFAULT_LEVEL);
 
@@ -40,6 +41,20 @@ static struct dclk_client_cb app_callbacks = {
 	.unsubscribed = unsubscribed,
 };
 
+static uint8_t pair_cb(void)
+{
+	LOG_INF("Allow pairing");
+	dclk_pairing(true);
+}
+static uint8_t user_cb(void)
+{
+}
+
+static struct interface_cb inter_callbacks = {
+	.pair_cb = pair_cb,
+	.user_cb = user_cb,
+};
+
 int main(void)
 {
 	// 	const struct device *const dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_console));
@@ -56,8 +71,24 @@ int main(void)
 	// 		return 0;
 	// 	}
 	// #endif
+	LOG_INF("DCLK_Display initialized\n");
 
-	dclk_client_init(&app_callbacks, 123456);
+	int err = interface_init(&inter_callbacks);
+	if (err)
+	{
+		printk("Interface init failed (err %d)\n", err);
+		return;
+	}
+
+	err = dclk_client_init(&app_callbacks, 123456);
+	if (err)
+	{
+		printk("Failed to init LBS (err:%d)\n", err);
+		return;
+	}
+	LOG_INF("Bluetooth initialized\n");
+
+	dclk_pairing(true);
 
 	while (1)
 	{
