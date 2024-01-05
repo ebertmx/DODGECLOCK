@@ -96,14 +96,14 @@ void main(void)
 	}
 	LOG_INF("Bluetooth initialized\n");
 
+	dclk_pairing(true);
 
 
-
-	for (;;)
-	{
-		// dk_set_led(RUN_STATUS_LED, (++blink_status) % 2);
-		k_sleep(K_MSEC(RUN_LED_BLINK_INTERVAL));
-	}
+for (;;)
+{
+	// dk_set_led(RUN_STATUS_LED, (++blink_status) % 2);
+	k_sleep(K_MSEC(RUN_LED_BLINK_INTERVAL));
+}
 }
 
 // Start timer thread

@@ -24,9 +24,7 @@
 
 #include "DCLK.h"
 
-
 LOG_MODULE_DECLARE(Controller_app, LOG_LEVEL_DBG);
-
 
 static bool notify_state_enabled;
 static bool notify_clock_enabled;
@@ -111,7 +109,7 @@ void advertise_DCLK(struct k_work *work)
 	}
 	else
 	{ // if no accept list and pairing enabled
-		if (allowed_cnt == 0 && pairing_enabled)
+		if (allowed_cnt == 0 || pairing_enabled)
 		{
 			LOG_INF("Advertising with no Accept list \n");
 			// One shot advertizing due to bt_adv_param settings
@@ -132,7 +130,7 @@ void advertise_DCLK(struct k_work *work)
 			LOG_INF("Advertising failed to start (err %d)\n", err);
 			return;
 		}
-		// LOG_INF("Advertising successfully started\n");
+		LOG_INF("Advertising successfully started\n");
 	}
 }
 
@@ -161,7 +159,7 @@ static void on_disconnected(struct bt_conn *conn, uint8_t reason)
 	LOG_INF("Disconnected (reason %u)\n", reason);
 
 	// advertize to try and reconnect
-	k_work_submit(&advertise_DCLK_work);
+	start_advertising();
 }
 
 static void on_security_changed(struct bt_conn *conn, bt_security_t level, enum bt_security_err err)
@@ -239,7 +237,7 @@ static void auth_pairing(struct bt_conn *conn)
 	char addr[BT_ADDR_LE_STR_LEN];
 	bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
 	int err = bt_conn_auth_pairing_confirm(conn);
-	printk("Pairing Authorized %d: %s\n", err, addr);
+	LOG_INF("Pairing Authorized %d: %s\n", err, addr);
 }
 
 static void auth_cancel(struct bt_conn *conn)
@@ -259,9 +257,8 @@ static void passkey_entry(struct bt_conn *conn)
 
 void passkey_display(struct bt_conn *conn, unsigned int passkey)
 {
-	LOG_INF("Controller passkey = %ld", passkey);
+	LOG_INF("Controller passkey = %d", passkey);
 }
-
 
 void passkey_confirm(struct bt_conn *conn, unsigned int passkey)
 {
@@ -274,6 +271,7 @@ static struct bt_conn_auth_cb auth_cb_display = {
 	.passkey_entry = passkey_entry,
 	.cancel = auth_cancel,
 	.pairing_confirm = auth_pairing,
+	.oob_data_request = NULL,
 };
 
 static void pairing_complete(struct bt_conn *conn, bool bonded)
@@ -319,11 +317,12 @@ int dclk_init(struct dclk_cb *callbacks, unsigned int custom_passkey)
 {
 	int err;
 
-	err = bt_enable(NULL);
-	if (err)
+
+	bt_conn_cb_register(&connection_callbacks);
+	if (callbacks)
 	{
-		LOG_ERR("Bluetooth enable failed (err %d)\n", err);
-		return err;
+		dclk_cb.clock_cb = callbacks->clock_cb;
+		dclk_cb.state_cb = callbacks->state_cb;
 	}
 
 	err = bt_conn_auth_cb_register(&auth_cb_display);
@@ -340,19 +339,11 @@ int dclk_init(struct dclk_cb *callbacks, unsigned int custom_passkey)
 		return 0;
 	}
 
-	passkey = custom_passkey;
-	//bt_passkey_set(passkey);
+	err = bt_enable(NULL);
 	if (err)
 	{
-		LOG_ERR("Bluetooth passkey set failed (err %d)\n", err);
+		LOG_ERR("Bluetooth enable failed (err %d)\n", err);
 		return err;
-	}
-
-	bt_conn_cb_register(&connection_callbacks);
-	if (callbacks)
-	{
-		dclk_cb.clock_cb = callbacks->clock_cb;
-		dclk_cb.state_cb = callbacks->state_cb;
 	}
 
 	if (IS_ENABLED(CONFIG_SETTINGS))
@@ -363,13 +354,8 @@ int dclk_init(struct dclk_cb *callbacks, unsigned int custom_passkey)
 			LOG_ERR("Bluetooth load settings failed (err %d)\n", err);
 			return err;
 		}
+		LOG_INF("BLE settings loaded \n");
 	}
-
-	// For testing only
-
-	// err = bt_unpair(BT_ID_DEFAULT, BT_ADDR_LE_ANY);
-	// pairing_enabled = true;
-	pairing_enabled = false;
 
 	pairing_enabled = false;
 	start_advertising();
@@ -382,6 +368,7 @@ int dclk_pairing(bool enable)
 	bt_le_adv_stop();
 	pairing_enabled = !pairing_enabled;
 
+	LOG_DBG("Pairing = %d", pairing_enabled);
 	if (pairing_enabled)
 	{
 
@@ -394,9 +381,15 @@ int dclk_pairing(bool enable)
 		{
 			LOG_INF("Bond deleted succesfully \n");
 		}
-		start_advertising();
+	}
+	while (!bt_is_ready())
+	{
+		LOG_DBG("BT not ready");
+		k_sleep(K_MSEC(25));
+		// do nothing
 	}
 
+	start_advertising();
 	return 0;
 }
 

@@ -68,7 +68,7 @@ uint32_t get_dclock (void);
  * @retval 0 If the operation was successful.
  *           Otherwise, a (negative) error code is returned.
  */
-uint32_t get_dstate (void);
+uint8_t get_dstate (void);
 
 
 

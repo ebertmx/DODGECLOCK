@@ -89,7 +89,7 @@ uint32_t get_dclock(void)
 	return d_clock;
 }
 
-uint32_t get_dstate(void)
+uint8_t get_dstate(void)
 {
 	return d_state;
 }

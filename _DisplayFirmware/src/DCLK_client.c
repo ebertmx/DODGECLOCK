@@ -49,18 +49,18 @@ static uint8_t on_received(struct bt_conn *conn,
 
 	if (params->value_handle == DCLK_client.dclock_notif_params.value_handle)
 	{
-		//LOG_INF("D_CLOCK updated");
+		// LOG_INF("D_CLOCK updated");
 		if (DCLK_client.cb.received_clock)
 		{
-			return DCLK_client.cb.received_clock(*(uint32_t*)data);
+			return DCLK_client.cb.received_clock(*(uint32_t *)data);
 		}
 	}
 	else if (params->value_handle == DCLK_client.dstate_notif_params.value_handle)
 	{
-		//LOG_INF("D_STATE updated");
+		// LOG_INF("D_STATE updated");
 		if (DCLK_client.cb.received_state)
 		{
-			return DCLK_client.cb.received_state(*(uint8_t*)data);
+			return DCLK_client.cb.received_state(*(uint8_t *)data);
 		}
 	}
 	return BT_GATT_ITER_CONTINUE;
@@ -71,7 +71,7 @@ int dclk_client_subscribe(struct dclk_client_t *DCLK_c)
 	int err;
 
 	atomic_set_bit(&DCLK_c->conn_state, DCLK_CLOCK_NOTIF_ENABLED);
-	
+
 	LOG_DBG("Subsribing");
 	DCLK_c->dclock_notif_params.notify = on_received;
 	DCLK_c->dclock_notif_params.value = BT_GATT_CCC_NOTIFY;
@@ -91,7 +91,6 @@ int dclk_client_subscribe(struct dclk_client_t *DCLK_c)
 		LOG_DBG("[SUBSCRIBED DCLOCK]");
 	}
 
-	
 	DCLK_c->dstate_notif_params.notify = on_received;
 	DCLK_c->dstate_notif_params.value = BT_GATT_CCC_NOTIFY;
 	DCLK_c->dstate_notif_params.value_handle = DCLK_c->handles.dstate;
@@ -229,10 +228,10 @@ static void gatt_discover(struct bt_conn *conn)
 {
 	int err;
 
-	if (conn != default_conn)
-	{
-		return;
-	}
+	// if (conn != default_conn)
+	// {
+	// 	return;
+	// }
 
 	err = bt_gatt_dm_start(conn,
 						   BT_UUID_DCLK,
@@ -304,20 +303,9 @@ static void connected(struct bt_conn *conn, uint8_t conn_err)
 
 static void disconnected(struct bt_conn *conn, uint8_t reason)
 {
-	char addr[BT_ADDR_LE_STR_LEN];
 	int err;
 
-	bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
-
-	LOG_INF("Disconnected: %s (reason %u)", addr, reason);
-
-	if (default_conn != conn)
-	{
-		return;
-	}
-
-	bt_conn_unref(default_conn);
-	default_conn = NULL;
+	LOG_INF("Disconnected:(reason %u)", reason);
 
 	err = bt_scan_start(BT_SCAN_TYPE_SCAN_ACTIVE);
 	if (err)
@@ -449,14 +437,22 @@ static void passkey_entry(struct bt_conn *conn)
 
 void passkey_display(struct bt_conn *conn, unsigned int passkey)
 {
-	LOG_INF("Controller passkey = %ld", passkey);
+	LOG_INF("Controller passkey = %d", passkey);
 }
 
+static void pairing_confirm(struct bt_conn *conn)
+{
+	char addr[BT_ADDR_LE_STR_LEN];
+	bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
+	int err = bt_conn_auth_pairing_confirm(conn);
+	LOG_INF("Pairing Authorized %d: %s\n", err, addr);
+}
 
 static struct bt_conn_auth_cb auth_cb_display = {
 	.passkey_display = passkey_display,
-	.passkey_entry = NULL,// passkey_entry,
+	.passkey_entry = passkey_entry,
 	.passkey_confirm = passkey_confirm,
+	.pairing_confirm = pairing_confirm,
 	.cancel = auth_cancel,
 };
 
@@ -475,25 +471,6 @@ int dclk_client_init(struct dclk_client_cb *callbacks, unsigned int custom_passk
 		LOG_ERR("No DCLK callbacks set");
 	}
 
-	err = bt_enable(NULL);
-	if (err)
-	{
-		LOG_INF("Bluetooth init failed (err %d)", err);
-		return 0;
-	}
-	else
-	{
-		LOG_INF("Bluetooth initialized");
-	}
-
-	display_passkey = custom_passkey;
-	//err = bt_passkey_set(display_passkey);
-	if (err)
-	{
-		LOG_INF("Bluetooth passkey set failed (err %d)\n", err);
-		return 0;
-	}
-
 	err = bt_conn_auth_cb_register(&auth_cb_display);
 	if (err)
 	{
@@ -508,13 +485,27 @@ int dclk_client_init(struct dclk_client_cb *callbacks, unsigned int custom_passk
 		return 0;
 	}
 
+	err = bt_enable(NULL);
+	if (err)
+	{
+		LOG_INF("Bluetooth init failed (err %d)", err);
+		return 0;
+	}
+	else
+	{
+		LOG_INF("Bluetooth initialized");
+	}
+
 	if (IS_ENABLED(CONFIG_SETTINGS))
 	{
 		settings_load();
-	}
 
-	// for Testing
-	//err = bt_unpair(BT_ID_DEFAULT, BT_ADDR_LE_ANY);
+		LOG_INF("Settings Loaded Successfully\n");
+	}
+	else
+	{
+		LOG_INF("Could not load settings");
+	}
 
 	err = scan_init();
 	if (err != 0)
