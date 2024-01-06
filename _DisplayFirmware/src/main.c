@@ -57,20 +57,6 @@ static struct interface_cb inter_callbacks = {
 
 int main(void)
 {
-	// 	const struct device *const dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_console));
-	// 	uint32_t dtr = 0;
-
-	// #if defined(CONFIG_USB_DEVICE_STACK_NEXT)
-	// 	if (enable_usb_device_next())
-	// 	{
-	// 		return 0;
-	// 	}
-	// #else
-	// 	if (usb_enable(NULL))
-	// 	{
-	// 		return 0;
-	// 	}
-	// #endif
 	LOG_INF("DCLK_Display initialized\n");
 
 	int err = interface_init(&inter_callbacks);
@@ -88,7 +74,7 @@ int main(void)
 	}
 	LOG_INF("Bluetooth initialized\n");
 
-	dclk_pairing(true);
+	//dclk_pairing(true);
 
 	while (1)
 	{

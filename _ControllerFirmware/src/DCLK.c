@@ -185,7 +185,7 @@ static void on_connected(struct bt_conn *conn, uint8_t err)
 
 	LOG_INF("Connected\n");
 
-	bt_conn_set_security(conn, BT_SECURITY_L4);
+	//bt_conn_set_security(conn, BT_SECURITY_L4);
 }
 
 static void on_disconnected(struct bt_conn *conn, uint8_t reason)
@@ -368,6 +368,12 @@ BT_GATT_SERVICE_DEFINE(
 
 );
 
+/*
+
+
+*/
+
+/*API*/
 int dclk_init(struct dclk_cb *callbacks, unsigned int custom_passkey)
 {
 	int err;
