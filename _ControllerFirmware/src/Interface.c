@@ -57,9 +57,7 @@ static void button_pressed(const struct device *dev, struct gpio_callback *cb, u
 
 	if (pins == BIT(button0.pin))
 	{
-		d_state = 0;
-		d_clock = 10000;
-		k_timer_start(&d_timer, K_MSEC(d_clock), K_NO_WAIT);
+		k_work_submit(&initiate_pairing);
 	}
 	else if (pins == BIT(button1.pin))
 	{
@@ -75,7 +73,9 @@ static void button_pressed(const struct device *dev, struct gpio_callback *cb, u
 
 	else if (pins == BIT(pairbtn.pin))
 	{
-		k_work_submit(&initiate_pairing);
+		d_state = 0;
+		d_clock = 10000;
+		k_timer_start(&d_timer, K_MSEC(d_clock), K_NO_WAIT);
 	}
 }
 
@@ -106,7 +106,7 @@ int interface_init(struct interface_cb *app_cb)
 		return !err;
 	}
 
-	gpio_pin_configure_dt(&button0, GPIO_INPUT);
+	gpio_pin_configure_dt(&button0, GPIO_INPUT | GPIO_PULL_UP);
 	gpio_pin_configure_dt(&button1, GPIO_INPUT);
 	gpio_pin_configure_dt(&userbtn, GPIO_INPUT);
 	gpio_pin_configure_dt(&pairbtn, GPIO_INPUT);
@@ -132,7 +132,6 @@ int interface_init(struct interface_cb *app_cb)
 		inter_cb.user_cb = app_cb->user_cb;
 	}
 
-	
 	d_clock = 10000;
 	d_state = 0;
 	k_timer_start(&d_timer, K_MSEC(d_clock), K_NO_WAIT);

@@ -21,10 +21,7 @@
 /{
 	buttons {
 		compatible = "gpio-keys";
-		button0: button_0 {
-			gpios = <&gpio0 11 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
-			label = "Push button switch 0";
-		};
+
 		button1: button_1 {
 			gpios = <&gpio0 12 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
 			label = "Push button switch 1";
@@ -34,7 +31,7 @@
 			label = "Push button switch 2";
 		};
 		button3: button_3 {
-			gpios = <&gpio0 6 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+			gpios = <&gpio0 25 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
 			label = "Push button switch 3";
 		};
 	};

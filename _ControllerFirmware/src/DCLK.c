@@ -39,13 +39,13 @@ static unsigned int passkey;
 #define DEVICE_NAME CONFIG_BT_DEVICE_NAME
 #define DEVICE_NAME_LEN (sizeof(DEVICE_NAME) - 1)
 
-#define BT_LE_ADV_CONN_NO_ACCEPT_LIST                                   \
-	BT_LE_ADV_PARAM(BT_LE_ADV_OPT_CONNECTABLE | BT_LE_ADV_OPT_ONE_TIME, \
+//| BT_LE_ADV_OPT_ONE_TIME,
+#define BT_LE_ADV_CONN_NO_ACCEPT_LIST          \
+	BT_LE_ADV_PARAM(BT_LE_ADV_OPT_CONNECTABLE, \
 					BT_GAP_ADV_FAST_INT_MIN_2, BT_GAP_ADV_FAST_INT_MAX_2, NULL)
 
-#define BT_LE_ADV_CONN_ACCEPT_LIST                                          \
-	BT_LE_ADV_PARAM(BT_LE_ADV_OPT_CONNECTABLE | BT_LE_ADV_OPT_FILTER_CONN | \
-						BT_LE_ADV_OPT_ONE_TIME,                             \
+#define BT_LE_ADV_CONN_ACCEPT_LIST                                         \
+	BT_LE_ADV_PARAM(BT_LE_ADV_OPT_CONNECTABLE | BT_LE_ADV_OPT_FILTER_CONN, \
 					BT_GAP_ADV_FAST_INT_MIN_2, BT_GAP_ADV_FAST_INT_MAX_2, NULL)
 
 static const struct bt_data ad[] = {
@@ -98,6 +98,38 @@ static int setup_accept_list(uint8_t local_id)
 	return bond_cnt;
 }
 
+
+void pair_DCLK(struct k_work *work)
+{
+	LOG_INF("Pairing Beginning--");
+	int err = 0;
+
+	bt_le_adv_stop();
+
+	err = bt_unpair(BT_ID_DEFAULT, BT_ADDR_LE_ANY);
+	if (err)
+	{
+		LOG_INF("Cannot delete bond (err: %d)\n", err);
+	}
+	else
+	{
+		LOG_INF("Bond deleted succesfully \n");
+	}
+
+	LOG_INF("Advertising with no Accept list \n");
+	// One shot advertizing due to bt_adv_param settings
+	// stops upon connection
+	err = bt_le_adv_start(BT_LE_ADV_CONN_NO_ACCEPT_LIST, ad, ARRAY_SIZE(ad), sd,
+						  ARRAY_SIZE(sd));
+	pairing_enabled = false;
+
+	if (err)
+	{
+		LOG_INF("Advertising failed to start (err %d)\n", err);
+		return;
+	}
+}
+
 void advertise_DCLK(struct k_work *work)
 {
 	int err = 0;
@@ -107,40 +139,41 @@ void advertise_DCLK(struct k_work *work)
 	{
 		LOG_INF("Acceptlist setup failed (err:%d)\n", allowed_cnt);
 	}
-	else
-	{ // if no accept list and pairing enabled
-		if (allowed_cnt == 0 || pairing_enabled)
-		{
-			LOG_INF("Advertising with no Accept list \n");
-			// One shot advertizing due to bt_adv_param settings
-			// stops upon connection
-			err = bt_le_adv_start(BT_LE_ADV_CONN_NO_ACCEPT_LIST, ad, ARRAY_SIZE(ad), sd,
-								  ARRAY_SIZE(sd));
-			pairing_enabled = false;
-		}
-		else
-		{
-			LOG_INF("Acceptlist setup number  = %d \n", allowed_cnt);
-			// One shot advertizing due to bt_adv_param settings
-			// stops upon connection
-			err = bt_le_adv_start(BT_LE_ADV_CONN_ACCEPT_LIST, ad, ARRAY_SIZE(ad), sd,
-								  ARRAY_SIZE(sd));
-		}
+	else if (allowed_cnt > 0)
+	{
+		LOG_INF("Acceptlist setup number  = %d \n", allowed_cnt);
+		// One shot advertizing due to bt_adv_param settings
+		// stops upon connection
+		err = bt_le_adv_start(BT_LE_ADV_CONN_ACCEPT_LIST, ad, ARRAY_SIZE(ad), sd,
+							  ARRAY_SIZE(sd));
+
 		if (err)
 		{
 			LOG_INF("Advertising failed to start (err %d)\n", err);
 			return;
 		}
 		LOG_INF("Advertising successfully started\n");
+		return;
 	}
+
+	LOG_INF("No Bonds -- Please start pairing");
+	return;
 }
 
 K_WORK_DEFINE(advertise_DCLK_work, advertise_DCLK);
+K_WORK_DEFINE(pair_DCLK_work, pair_DCLK);
 
 void start_advertising(void)
 {
 	k_work_submit(&advertise_DCLK_work);
 }
+
+void start_pairing(void)
+{
+	k_work_submit(&pair_DCLK_work);
+}
+
+/*CONNECTION*/
 
 static void on_connected(struct bt_conn *conn, uint8_t err)
 {
@@ -152,7 +185,7 @@ static void on_connected(struct bt_conn *conn, uint8_t err)
 
 	LOG_INF("Connected\n");
 
-	// bt_conn_set_security(conn, BT_SECURITY_L4);
+	bt_conn_set_security(conn, BT_SECURITY_L4);
 }
 
 static void on_disconnected(struct bt_conn *conn, uint8_t reason)
@@ -184,7 +217,12 @@ struct bt_conn_cb connection_callbacks = {
 	.disconnected = on_disconnected,
 	.security_changed = on_security_changed,
 };
+/*
 
+
+
+*/
+/*NOTIFICATION AND STATE*/
 /* state configuration change callback function */
 static void dclk_ccc_state_cfg_changed(const struct bt_gatt_attr *attr, uint16_t value)
 {
@@ -232,6 +270,12 @@ static ssize_t read_clock(struct bt_conn *conn, const struct bt_gatt_attr *attr,
 
 	return 0;
 }
+/*
+
+
+
+*/
+/*AUTHENTICATION*/
 
 static void auth_pairing(struct bt_conn *conn)
 {
@@ -274,6 +318,11 @@ static struct bt_conn_auth_cb auth_cb_display = {
 	.pairing_confirm = auth_pairing,
 };
 
+/*
+
+
+*/
+/*PAIRING*/
 static void pairing_complete(struct bt_conn *conn, bool bonded)
 {
 	char addr[BT_ADDR_LE_STR_LEN];
@@ -297,6 +346,12 @@ static struct bt_conn_auth_info_cb conn_auth_info_callbacks = {
 	.pairing_failed = pairing_failed,
 };
 
+
+/*
+
+
+
+*/
 /* DCLK Service Declaration */
 BT_GATT_SERVICE_DEFINE(
 	dclk_svc, BT_GATT_PRIMARY_SERVICE(BT_UUID_DCLK),
@@ -355,8 +410,6 @@ int dclk_init(struct dclk_cb *callbacks, unsigned int custom_passkey)
 		LOG_INF("BLE settings loaded \n");
 	}
 
-	pairing_enabled = true;
-
 	start_advertising();
 
 	return 0;
@@ -364,31 +417,7 @@ int dclk_init(struct dclk_cb *callbacks, unsigned int custom_passkey)
 
 int dclk_pairing(bool enable)
 {
-	bt_le_adv_stop();
-	pairing_enabled = !pairing_enabled;
-
-	LOG_DBG("Pairing = %d", pairing_enabled);
-	if (pairing_enabled)
-	{
-
-		int err = bt_unpair(BT_ID_DEFAULT, BT_ADDR_LE_ANY);
-		if (err)
-		{
-			LOG_INF("Cannot delete bond (err: %d)\n", err);
-		}
-		else
-		{
-			LOG_INF("Bond deleted succesfully \n");
-		}
-	}
-	while (!bt_is_ready())
-	{
-		LOG_DBG("BT not ready");
-		k_sleep(K_MSEC(25));
-		// do nothing
-	}
-
-	start_advertising();
+	start_pairing();
 	return 0;
 }
 

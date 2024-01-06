@@ -95,9 +95,7 @@ void main(void)
 		return;
 	}
 	LOG_INF("Bluetooth initialized\n");
-
-	//dclk_pairing(true);
-
+	LOG_INF("MAIN--sleep");
 
 for (;;)
 {
