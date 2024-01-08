@@ -21,7 +21,7 @@
 #include "DCLK.h"
 #include "Interface.h"
 
-LOG_MODULE_REGISTER(Controller_app, LOG_LEVEL_INF);
+LOG_MODULE_REGISTER(Controller_app, LOG_LEVEL_ERR);
 
 #define STACKSIZE 1024
 #define PRIORITY 7
@@ -81,24 +81,26 @@ void main(void)
 
 	LOG_INF("Starting DCLK Controller \n");
 
-	err = interface_init(&inter_callbacks);
+	//err = interface_init(&inter_callbacks);
 	if (err)
 	{
-		printk("Interface init failed (err %d)\n", err);
+		LOG_INF("Interface init failed (err %d)\n", err);
 		return;
 	}
 
-	err = dclk_init(&app_callbacks, 123456);
+	//err = dclk_init(&app_callbacks, 123456);
 	if (err)
 	{
-		printk("Failed to init LBS (err:%d)\n", err);
+		LOG_INF("Failed to init LBS (err:%d)\n", err);
 		return;
 	}
 	LOG_INF("Bluetooth initialized\n");
 	LOG_INF("MAIN--sleep");
 
+int i = 0;
 for (;;)
 {
+	i++;
 	// dk_set_led(RUN_STATUS_LED, (++blink_status) % 2);
 	k_sleep(K_MSEC(RUN_LED_BLINK_INTERVAL));
 }
@@ -106,4 +108,4 @@ for (;;)
 
 // Start timer thread
 
-K_THREAD_DEFINE(dclock_update, STACKSIZE, update_dclock, NULL, NULL, NULL, PRIORITY, 0, 0);
+//K_THREAD_DEFINE(dclock_update, STACKSIZE, update_dclock, NULL, NULL, NULL, PRIORITY, 0, 0);
