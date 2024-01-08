@@ -81,14 +81,14 @@ void main(void)
 
 	LOG_INF("Starting DCLK Controller \n");
 
-	//err = interface_init(&inter_callbacks);
+	err = interface_init(&inter_callbacks);
 	if (err)
 	{
 		LOG_INF("Interface init failed (err %d)\n", err);
 		return;
 	}
 
-	//err = dclk_init(&app_callbacks, 123456);
+	err = dclk_init(&app_callbacks, 123456);
 	if (err)
 	{
 		LOG_INF("Failed to init LBS (err:%d)\n", err);
@@ -101,7 +101,7 @@ int i = 0;
 for (;;)
 {
 	i++;
-	// dk_set_led(RUN_STATUS_LED, (++blink_status) % 2);
+	//dk_set_led(RUN_STATUS_LED, (++blink_status) % 2);
 	k_sleep(K_MSEC(RUN_LED_BLINK_INTERVAL));
 }
 }

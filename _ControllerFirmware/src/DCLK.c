@@ -98,7 +98,6 @@ static int setup_accept_list(uint8_t local_id)
 	return bond_cnt;
 }
 
-
 void pair_DCLK(struct k_work *work)
 {
 	LOG_INF("Pairing Beginning--");
@@ -185,7 +184,7 @@ static void on_connected(struct bt_conn *conn, uint8_t err)
 
 	LOG_INF("Connected\n");
 
-	//bt_conn_set_security(conn, BT_SECURITY_L4);
+	// bt_conn_set_security(conn, BT_SECURITY_L4);
 }
 
 static void on_disconnected(struct bt_conn *conn, uint8_t reason)
@@ -346,7 +345,6 @@ static struct bt_conn_auth_info_cb conn_auth_info_callbacks = {
 	.pairing_failed = pairing_failed,
 };
 
-
 /*
 
 
@@ -416,7 +414,14 @@ int dclk_init(struct dclk_cb *callbacks, unsigned int custom_passkey)
 		LOG_INF("BLE settings loaded \n");
 	}
 
-	start_advertising();
+	err = bt_le_adv_start(BT_LE_ADV_CONN, ad, ARRAY_SIZE(ad), sd,
+						  ARRAY_SIZE(sd));
+
+	if (err)
+	{
+		err = -1;
+	}
+	// start_advertising();
 
 	return 0;
 }
