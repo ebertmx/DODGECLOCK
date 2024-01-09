@@ -11,12 +11,12 @@
 #include <stddef.h>
 #include <string.h>
 #include <errno.h>
-#include <zephyr/sys/printk.h>
+
 #include <zephyr/sys/byteorder.h>
-#include <zephyr/kernel.h>
-#include <zephyr/logging/log.h>
+//#include <zephyr/kernel.h>
+
 #include <zephyr/bluetooth/bluetooth.h>
-#include <zephyr/bluetooth/hci.h>
+//#include <zephyr/bluetooth/hci.h>
 #include <zephyr/bluetooth/conn.h>
 #include <zephyr/bluetooth/uuid.h>
 #include <zephyr/bluetooth/gatt.h>
@@ -24,15 +24,19 @@
 
 #include "DCLK.h"
 
+#define DLCK_LOG 1
+
+#ifdef DLCK_LOG
+#include <zephyr/sys/printk.h>
+#include <zephyr/logging/log.h>
 LOG_MODULE_DECLARE(Controller_app, LOG_LEVEL_DBG);
+#endif
 
 static bool notify_state_enabled;
 static bool notify_clock_enabled;
 static uint8_t state;
 static uint32_t clock;
 static struct dclk_cb dclk_cb;
-
-static bool pairing_enabled;
 
 static unsigned int passkey;
 
@@ -120,7 +124,6 @@ void pair_DCLK(struct k_work *work)
 	// stops upon connection
 	err = bt_le_adv_start(BT_LE_ADV_CONN_NO_ACCEPT_LIST, ad, ARRAY_SIZE(ad), sd,
 						  ARRAY_SIZE(sd));
-	pairing_enabled = false;
 
 	if (err)
 	{
@@ -159,17 +162,19 @@ void advertise_DCLK(struct k_work *work)
 	return;
 }
 
-K_WORK_DEFINE(advertise_DCLK_work, advertise_DCLK);
-K_WORK_DEFINE(pair_DCLK_work, pair_DCLK);
+// K_WORK_DEFINE(advertise_DCLK_work, advertise_DCLK);
+// K_WORK_DEFINE(pair_DCLK_work, pair_DCLK);
 
 void start_advertising(void)
 {
-	k_work_submit(&advertise_DCLK_work);
+	// k_work_submit(&advertise_DCLK_work);
+	advertise_DCLK(NULL);
 }
 
 void start_pairing(void)
 {
-	k_work_submit(&pair_DCLK_work);
+	pair_DCLK(NULL);
+	// k_work_submit(&pair_DCLK_work);
 }
 
 /*CONNECTION*/
@@ -179,6 +184,7 @@ static void on_connected(struct bt_conn *conn, uint8_t err)
 	if (err)
 	{
 		LOG_INF("Connection failed (err %u)\n", err);
+		start_advertising();
 		return;
 	}
 
@@ -322,6 +328,7 @@ static struct bt_conn_auth_cb auth_cb_display = {
 
 */
 /*PAIRING*/
+#ifdef DCLK_INFO
 static void pairing_complete(struct bt_conn *conn, bool bonded)
 {
 	char addr[BT_ADDR_LE_STR_LEN];
@@ -344,7 +351,7 @@ static struct bt_conn_auth_info_cb conn_auth_info_callbacks = {
 	.pairing_complete = pairing_complete,
 	.pairing_failed = pairing_failed,
 };
-
+#endif
 /*
 
 
@@ -395,13 +402,14 @@ int dclk_init(struct dclk_cb *callbacks, unsigned int custom_passkey)
 		LOG_ERR("Bluetooth authetication register failed (err %d)\n", err);
 		return err;
 	}
-
+#ifdef DCLK_INFO
 	err = bt_conn_auth_info_cb_register(&conn_auth_info_callbacks);
 	if (err)
 	{
 		LOG_INF("Bluetooth info register failed (err %d)\n", err);
 		return 0;
 	}
+#endif
 
 	if (IS_ENABLED(CONFIG_SETTINGS))
 	{
@@ -414,14 +422,15 @@ int dclk_init(struct dclk_cb *callbacks, unsigned int custom_passkey)
 		LOG_INF("BLE settings loaded \n");
 	}
 
-	err = bt_le_adv_start(BT_LE_ADV_CONN, ad, ARRAY_SIZE(ad), sd,
-						  ARRAY_SIZE(sd));
+	// err = bt_le_adv_start(BT_LE_ADV_CONN, ad, ARRAY_SIZE(ad), sd,
+	// 					  ARRAY_SIZE(sd));
 
-	if (err)
-	{
-		err = -1;
-	}
+	// if (err)
+	// {
+	// 	err = -1;
+	// }
 	// start_advertising();
+	
 
 	return 0;
 }

@@ -23,12 +23,10 @@
 
 LOG_MODULE_REGISTER(Controller_app, LOG_LEVEL_ERR);
 
-#define STACKSIZE 1024
+#define STACKSIZE 512
 #define PRIORITY 7
 
-#define RUN_LED_BLINK_INTERVAL 1000
-
-#define SYNC_INTERVAL 300
+#define SYNC_INTERVAL 500
 
 /*DCLK Service and BLE*/
 static uint32_t app_clock_cb(void)
@@ -97,15 +95,15 @@ void main(void)
 	LOG_INF("Bluetooth initialized\n");
 	LOG_INF("MAIN--sleep");
 
-int i = 0;
-for (;;)
-{
-	i++;
-	//dk_set_led(RUN_STATUS_LED, (++blink_status) % 2);
-	k_sleep(K_MSEC(RUN_LED_BLINK_INTERVAL));
-}
+	dclk_pairing(true);
+
+
+	for (;;)
+	{
+		k_sleep(K_FOREVER);
+	}
 }
 
 // Start timer thread
 
-//K_THREAD_DEFINE(dclock_update, STACKSIZE, update_dclock, NULL, NULL, NULL, PRIORITY, 0, 0);
+// K_THREAD_DEFINE(dclock_update, STACKSIZE, update_dclock, NULL, NULL, NULL, PRIORITY, 0, 0);

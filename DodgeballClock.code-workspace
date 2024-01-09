@@ -10,7 +10,8 @@
 			"${workspaceFolder}\\_DisplayFirmware"
 		],
 		"files.associations": {
-			"dclk_client.h": "c"
+			"dclk_client.h": "c",
+			"log.h": "c"
 		},
 		"nrf-connect.debugging.bindings": {
 			"${workspaceFolder}/_ControllerFirmware/build_810": "Launch build_810"
