@@ -21,14 +21,12 @@
 #include "DCLK.h"
 #include "Interface.h"
 
-LOG_MODULE_REGISTER(Controller_app, LOG_LEVEL_INF);
+LOG_MODULE_REGISTER(Controller_app, LOG_LEVEL_ERR);
 
-#define STACKSIZE 1024
+#define STACKSIZE 512
 #define PRIORITY 7
 
-#define RUN_LED_BLINK_INTERVAL 1000
-
-#define SYNC_INTERVAL 300
+#define SYNC_INTERVAL 500
 
 /*DCLK Service and BLE*/
 static uint32_t app_clock_cb(void)
@@ -84,25 +82,25 @@ void main(void)
 	err = interface_init(&inter_callbacks);
 	if (err)
 	{
-		printk("Interface init failed (err %d)\n", err);
+		LOG_INF("Interface init failed (err %d)\n", err);
 		return;
 	}
 
 	err = dclk_init(&app_callbacks, 123456);
 	if (err)
 	{
-		printk("Failed to init LBS (err:%d)\n", err);
+		LOG_INF("Failed to init LBS (err:%d)\n", err);
 		return;
 	}
 	LOG_INF("Bluetooth initialized\n");
+	LOG_INF("MAIN--sleep");
 
-
+	dclk_pairing(true);
 
 
 	for (;;)
 	{
-		// dk_set_led(RUN_STATUS_LED, (++blink_status) % 2);
-		k_sleep(K_MSEC(RUN_LED_BLINK_INTERVAL));
+		k_sleep(K_FOREVER);
 	}
 }
 

@@ -10,7 +10,23 @@
 			"${workspaceFolder}\\_DisplayFirmware"
 		],
 		"files.associations": {
-			"dclk_client.h": "c"
+			"dclk_client.h": "c",
+			"log.h": "c"
+		},
+		"nrf-connect.debugging.bindings": {
+			"${workspaceFolder}/_ControllerFirmware/build_810": "Launch build_810"
 		}
+	},
+	"launch": {
+		"version": "0.2.0",
+		"configurations": [
+			{
+				"type": "nrf-connect",
+				"request": "launch",
+				"name": "Launch build_810",
+				"config": "${workspaceFolder}/_ControllerFirmware/build_810",
+				//"runToEntryPoint": "main"
+			}
+		]
 	}
 }
