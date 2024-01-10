@@ -11,7 +11,11 @@
 		],
 		"files.associations": {
 			"dclk_client.h": "c",
-			"log.h": "c"
+			"log.h": "c",
+			"settings.h": "c",
+			"gpio.h": "c",
+			"gap.h": "c",
+			"device.h": "c"
 		},
 		"nrf-connect.debugging.bindings": {
 			"${workspaceFolder}/_ControllerFirmware/build_810": "Launch build_810"

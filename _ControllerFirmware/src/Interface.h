@@ -2,75 +2,81 @@
 #ifndef DCLK_INTERFACE
 #define DCLK_INTERFACE
 
-/**@file
- * @defgroup bt_lbs LED Button Service API
+/**
+ * @file Interface.h
+ * @defgroup DCLK_refController
  * @{
- * @brief API for the LED Button Service (LBS).
+ * @brief API for handling button inputs and display outputs
  */
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
 #include <zephyr/types.h>
+#include <zephyr/drivers/gpio.h>
 
-/** @brief Callback type for when an LED state change is received. */
-typedef uint8_t (*pair_cb_t)(void);
+#include <zephyr/device.h>
+#include <zephyr/devicetree.h>
+#include <zephyr/settings/settings.h>
 
-/** @brief Callback type for when the button state is pulled. */
-typedef uint8_t (*user_cb_t)(void);
+	struct interface_cb
+	{
 
-/** @brief Callback struct used by the LBS Service. */
-struct interface_cb {
-	/** LED state change callback. */
-	pair_cb_t pair_cb;
-	/** Button read callback. */
-	user_cb_t user_cb;
-};
+	};
+	/** @brief
+	 *
+	 * @param evt the button event which just occurred
+	 * 0 release (falling edge)
+	 * 1 push (rising edge)
+	 * 2 hold (sustained push)
+	 */
+	typedef uint8_t (*user_func)(uint8_t evt);
 
+	typedef struct button_t
+	{
+		uint8_t val;
+		uint16_t debounce;
+		uint8_t type;
 
+		const struct gpio_dt_spec gpio_spec;
+		struct gpio_callback gpio_cb_data;
+		gpio_flags_t gpio_flags;
+		gpio_callback_handler_t gpio_cb_handler;
 
-/** @brief Initialize the LBS Service.
- *
- * This function registers application callback functions with the My LBS
- * Service
- *
- * @param[in] callbacks Struct containing pointers to callback functions
- *			used by the service. This pointer can be NULL
- *			if no callback functions are defined.
- *
- *
- * @retval 0 If the operation was successful.
- *           Otherwise, a (negative) error code is returned.
- */
-int interface_init(struct interface_cb *app_cb);
+		struct k_work btn_work;
+		k_work_handler_t btn_work_handler;
 
+		user_func user;
+	} btn_t;
 
-/** @brief Send the button state as notification.
- *
- * This function sends a binary state, typically the state of a
- * button, to all connected peers.
- *
- * @param[in] state The state of the button.
- *
- * @retval 0 If the operation was successful.
- *           Otherwise, a (negative) error code is returned.
- */
-uint32_t get_dclock (void);
+	/** @brief Initialize the Interface
+	 *
+	 * This function registers application callback functions with the My LBS
+	 * Service
+	 *
+	 * @param[in] app_cb Struct containing pointers to callback functions
+	 *			used for each button on event. This pointer can be NULL
+	 *			if no callback functions are defined.
+	 *
+	 *
+	 * @retval 0 If the operation was successful.
+	 *           Otherwise, a (negative) error code is returned.
+	 */
+	int interface_init(struct interface_cb *app_cb);
 
-/** @brief Send the sensor value as notification.
- *
- * This function sends an uint32_t  value, typically the value
- * of a simulated sensor to all connected peers.
- *
- * @param[in] clock The value of the simulated sensor.
- *
- * @retval 0 If the operation was successful.
- *           Otherwise, a (negative) error code is returned.
- */
-uint8_t get_dstate (void);
-
-
+	/** @brief Send data to be written to SPI display
+	 *
+	 * This function sends a string to the SPI buffer to be
+	 * written to the display
+	 *
+	 * @param[in] data void pointer to string data. a null value will clear display
+	 *
+	 * @retval 0 If the operation was successful.
+	 *           Otherwise, a (negative) error code is returned.
+	 */
+	uint32_t interface_display_write(void *data);
 
 #ifdef __cplusplus
 }

@@ -14,128 +14,152 @@
 
 #include "Interface.h"
 
+
+#include <zephyr/sys/printk.h>
+#include <zephyr/logging/log.h>
+LOG_MODULE_DECLARE(Controller_app, LOG_LEVEL_DBG);
+
 #define SW0_NODE DT_NODELABEL(button0)
 #define SW1_NODE DT_NODELABEL(button1)
 #define SW2_NODE DT_NODELABEL(button2)
-#define PAIRING_BUTTON DT_NODELABEL(button3)
+#define SW3_NODE DT_NODELABEL(button3)
 
-static const struct gpio_dt_spec button0 = GPIO_DT_SPEC_GET(SW0_NODE, gpios);
-static const struct gpio_dt_spec button1 = GPIO_DT_SPEC_GET(SW1_NODE, gpios);
-static const struct gpio_dt_spec userbtn = GPIO_DT_SPEC_GET(SW2_NODE, gpios);
-static const struct gpio_dt_spec pairbtn = GPIO_DT_SPEC_GET(PAIRING_BUTTON, gpios);
+/*
 
-static struct gpio_callback button0_cb_data;
-static struct gpio_callback button1_cb_data;
-static struct gpio_callback userbtn_cb_data;
-static struct gpio_callback pairbtn_cb_data;
 
-struct k_timer d_timer;
-static uint8_t d_state = 0;		 // shot clock state
-static uint32_t d_clock = 10000; // shot clock in ms
+*/
+/* Button Event Handler */
 
-static struct interface_cb inter_cb;
-/*DCLOCK*/
-
-static void d_clock_expire(struct k_timer *timer_id)
+void handle_button_event(struct k_work *work)
 {
-	d_state = 2;
-	d_clock = 0;
-	d_clock = 10000;
-	d_state = 0;
-	k_timer_start(&d_timer, K_MSEC(d_clock), K_NO_WAIT);
+
+	struct button_t * btn = CONTAINER_OF(work, struct button_t, btn_work);
+	LOG_INF("handle_button_event");
+
 }
 
-static void pair_work_cb(void)
+/*
+
+
+*/
+/*Callback Buttons*/
+
+static void button_event_cb(const struct device *dev, struct gpio_callback *cb, uint32_t pins)
 {
-	inter_cb.pair_cb();
-}
-K_WORK_DEFINE(initiate_pairing, pair_work_cb);
-/*UI*/
+	struct button_t * btn = CONTAINER_OF(cb, struct button_t, gpio_cb_data);
+	LOG_INF("button_event_cb");
+	k_work_submit(&btn->btn_work);
 
-static void button_pressed(const struct device *dev, struct gpio_callback *cb, uint32_t pins)
-{
-
-	if (pins == BIT(button0.pin))
-	{
-		k_work_submit(&initiate_pairing);
-	}
-	else if (pins == BIT(button1.pin))
-	{
-		d_state = 2;
-		d_clock = 0;
-		k_timer_stop(&d_timer);
-	}
-	else if (pins == BIT(userbtn.pin))
-	{
-		d_state = 0;
-		k_timer_start(&d_timer, K_MSEC(d_clock), K_NO_WAIT);
-	}
-
-	else if (pins == BIT(pairbtn.pin))
-	{
-		d_state = 0;
-		d_clock = 10000;
-		k_timer_start(&d_timer, K_MSEC(d_clock), K_NO_WAIT);
-	}
 }
 
-uint32_t get_dclock(void)
+static void pair_btn_cb(const struct device *dev, struct gpio_callback *cb, uint32_t pins)
 {
-	if (d_state == 0)
-	{
-		d_clock = k_timer_remaining_get(&d_timer);
-	}
 
-	return d_clock;
+
+}
+static void user_btn_cb(const struct device *dev, struct gpio_callback *cb, uint32_t pins)
+{
+
+}
+static void start_btn_cb(const struct device *dev, struct gpio_callback *cb, uint32_t pins)
+{
+
+}
+static void stop_btn_cb(const struct device *dev, struct gpio_callback *cb, uint32_t pins)
+{
+
 }
 
-uint8_t get_dstate(void)
+/*Button Declarations*/
+
+static struct button_t pair_btn =
+	{
+		.val = 1,
+		.gpio_spec = GPIO_DT_SPEC_GET(SW0_NODE, gpios),
+		.gpio_cb_handler = button_event_cb,
+		.gpio_flags = GPIO_INT_EDGE_BOTH,
+
+		.btn_work_handler = handle_button_event,
+};
+static struct button_t user_btn =
+	{
+		.val = 2,
+		.gpio_spec = GPIO_DT_SPEC_GET(SW1_NODE, gpios),
+		.gpio_cb_handler = button_event_cb,
+		.gpio_flags = GPIO_INT_EDGE_BOTH,
+
+		.btn_work_handler = handle_button_event,
+
+};
+static struct button_t start_btn =
+	{
+		.val = 3,
+		.gpio_spec = GPIO_DT_SPEC_GET(SW2_NODE, gpios),
+		.gpio_cb_handler = button_event_cb,
+		.gpio_flags = GPIO_INT_EDGE_BOTH,
+
+		.btn_work_handler = handle_button_event,
+};
+static struct button_t stop_btn =
+	{
+		.val = 4,
+		.gpio_spec = GPIO_DT_SPEC_GET(SW3_NODE, gpios),
+		.gpio_cb_handler = button_event_cb,
+		.gpio_flags = GPIO_INT_EDGE_BOTH,
+
+
+		.btn_work_handler = handle_button_event,
+};
+
+
+/*
+
+
+*/
+/*Initialize*/
+
+int setup_button(struct button_t *button)
 {
-	return d_state;
+
+	/*GPIO*/
+	int err = device_is_ready(button->gpio_spec.port);
+
+	gpio_pin_configure_dt(&button->gpio_spec, GPIO_INPUT | GPIO_PULL_UP);
+
+	/*Interrupt*/
+
+	gpio_pin_interrupt_configure_dt(&button->gpio_spec, button->gpio_flags);
+
+	gpio_init_callback(&button->gpio_cb_data, button->gpio_cb_handler, BIT(button->gpio_spec.pin));
+
+	err = gpio_add_callback(button->gpio_spec.port, &button->gpio_cb_data);
+
+	/* WORK */
+
+	k_work_init(&button->btn_work, handle_button_event);
+
+	return err;
 }
 
 int interface_init(struct interface_cb *app_cb)
 {
 	int err;
-	err = device_is_ready(button0.port);
-	err &= device_is_ready(button1.port);
-	err &= device_is_ready(userbtn.port);
-	err &= device_is_ready(pairbtn.port);
+
+	err = setup_button(&pair_btn);
+	err = setup_button(&user_btn);
+	err = setup_button(&start_btn);
+	err = setup_button(&stop_btn);
+
 	if (!err)
 	{
 		return !err;
 	}
 
-	gpio_pin_configure_dt(&button0, GPIO_INPUT | GPIO_PULL_UP);
-	gpio_pin_configure_dt(&button1, GPIO_INPUT);
-	gpio_pin_configure_dt(&userbtn, GPIO_INPUT);
-	gpio_pin_configure_dt(&pairbtn, GPIO_INPUT);
+	// if (app_cb)
+	// {
+	// 	inter_cb.pair_cb = app_cb->pair_cb;
+	// 	inter_cb.user_cb = app_cb->user_cb;
+	// }
 
-	gpio_pin_interrupt_configure_dt(&button0, GPIO_INT_EDGE_RISING);
-	gpio_pin_interrupt_configure_dt(&button1, GPIO_INT_EDGE_RISING);
-	gpio_pin_interrupt_configure_dt(&userbtn, GPIO_INT_EDGE_RISING);
-	gpio_pin_interrupt_configure_dt(&pairbtn, GPIO_INT_EDGE_RISING);
-
-	gpio_init_callback(&button0_cb_data, button_pressed, BIT(button0.pin));
-	gpio_init_callback(&button1_cb_data, button_pressed, BIT(button1.pin));
-	gpio_init_callback(&userbtn_cb_data, button_pressed, BIT(userbtn.pin));
-	gpio_init_callback(&pairbtn_cb_data, button_pressed, BIT(pairbtn.pin));
-
-	gpio_add_callback(button0.port, &button0_cb_data);
-	gpio_add_callback(button1.port, &button1_cb_data);
-	gpio_add_callback(userbtn.port, &userbtn_cb_data);
-	gpio_add_callback(pairbtn.port, &pairbtn_cb_data);
-
-	if (app_cb)
-	{
-		inter_cb.pair_cb = app_cb->pair_cb;
-		inter_cb.user_cb = app_cb->user_cb;
-	}
-
-	d_clock = 10000;
-	d_state = 0;
-	k_timer_start(&d_timer, K_MSEC(d_clock), K_NO_WAIT);
 	return 0;
 }
-
-K_TIMER_DEFINE(d_timer, d_clock_expire, NULL);

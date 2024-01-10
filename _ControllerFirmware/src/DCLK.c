@@ -379,7 +379,7 @@ BT_GATT_SERVICE_DEFINE(
 */
 
 /*API*/
-int dclk_init(struct dclk_cb *callbacks, unsigned int custom_passkey)
+int dclk_init(struct dclk_cb *callbacks)
 {
 	int err;
 
@@ -435,7 +435,7 @@ int dclk_init(struct dclk_cb *callbacks, unsigned int custom_passkey)
 	return 0;
 }
 
-int dclk_pairing(bool enable)
+int dclk_pairing(void)
 {
 	start_pairing();
 	return 0;
