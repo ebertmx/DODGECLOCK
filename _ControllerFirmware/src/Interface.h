@@ -20,7 +20,7 @@ extern "C"
 #include <zephyr/device.h>
 #include <zephyr/devicetree.h>
 #include <zephyr/settings/settings.h>
-
+#include "helper_q.h"
 	/** @brief
 	 *
 	 * @param evt the button event which just occurred
@@ -82,7 +82,7 @@ extern "C"
 	 * @retval 0 If the operation was successful.
 	 *           Otherwise, a (negative) error code is returned.
 	 */
-	int interface_update(uint32_t *clock, uint8_t *state, char *num_conn);
+	int interface_update(uint32_t *clock, uint8_t *state, char *conn_status);
 
 #ifdef __cplusplus
 }
