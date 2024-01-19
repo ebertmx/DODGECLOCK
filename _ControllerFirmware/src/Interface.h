@@ -21,10 +21,6 @@ extern "C"
 #include <zephyr/devicetree.h>
 #include <zephyr/settings/settings.h>
 
-	struct interface_cb
-	{
-
-	};
 	/** @brief
 	 *
 	 * @param evt the button event which just occurred
@@ -32,11 +28,12 @@ extern "C"
 	 * 1 push (rising edge)
 	 * 2 hold (sustained push)
 	 */
-	typedef uint8_t (*user_func)(uint8_t evt);
+	typedef uint8_t (*active_func)(uint8_t evt);
 
 	typedef struct button_t
 	{
 		uint8_t val;
+		uint8_t evt;
 		uint16_t debounce;
 		uint8_t type;
 
@@ -48,8 +45,17 @@ extern "C"
 		struct k_work btn_work;
 		k_work_handler_t btn_work_handler;
 
-		user_func user;
+		active_func active_func_cb;
 	} btn_t;
+
+	typedef struct interface_cb
+	{
+		active_func pair;
+		active_func user;
+		active_func start;
+		active_func stop;
+
+	} interface_cb;
 
 	/** @brief Initialize the Interface
 	 *
@@ -76,7 +82,7 @@ extern "C"
 	 * @retval 0 If the operation was successful.
 	 *           Otherwise, a (negative) error code is returned.
 	 */
-	uint32_t interface_display_write(void *data);
+	int interface_display_update(uint32_t *clock, uint8_t *state, uint8_t *num_conn);
 
 #ifdef __cplusplus
 }

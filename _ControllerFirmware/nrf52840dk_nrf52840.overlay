@@ -1,0 +1,77 @@
+// To get started, press Ctrl+Space to bring up the completion menu and view the available nodes.
+
+// You can also use the buttons in the sidebar to perform actions on nodes.
+// Actions currently available include:
+
+// * Enabling / disabling the node
+// * Adding the bus to a bus
+// * Removing the node
+// * Connecting ADC channels
+
+// For more help, browse the DeviceTree documentation at https://docs.zephyrproject.org/latest/guides/dts/index.html
+// You can also visit the nRF DeviceTree extension documentation at https://nrfconnect.github.io/vscode-nrf-connect/devicetree/nrfdevicetree.html
+
+&pinctrl {
+ 
+	i2c0_default: i2c0_default {
+		group1 {
+			psels = <NRF_PSEL(TWIM_SDA, 0, 4)>,
+				<NRF_PSEL(TWIM_SCL, 0, 3)>;
+		};
+	};
+
+	i2c0_sleep: i2c0_sleep {
+		group1 {
+			psels = <NRF_PSEL(TWIM_SDA, 0, 4)>,
+				<NRF_PSEL(TWIM_SCL, 0, 3)>;
+			low-power-enable;
+		};
+	};
+};
+
+
+ &i2c0 {
+    compatible = "nordic,nrf-twim";
+    status = "okay";
+    clock-frequency = <I2C_BITRATE_FAST>;
+    zephyr,concat-buf-size = <4096>;
+
+    ssd1306: ssd1306@3c {
+        compatible = "solomon,ssd1306fb";
+        reg = <0x3c>; //0x3c is the i2c address of the SSD1306 aIC.
+        width = <128>;
+        height = <32>; // Change to '64' when using the 128x64 pixel version.
+        segment-offset = <0>;
+        page-offset = <0>;
+        display-offset = <0>;
+        multiplex-ratio = <31>; //change to '63' when using the 128x64 pixel version
+        segment-remap;
+      	com-invdir;
+        com-sequential;
+        prechargep = <0x22>;
+    };
+};
+// &arduino_header {
+// 	gpio-map = <0 0 &gpio0 3 0>,
+// 			   <1 0 &gpio0 4 0>,
+// 			   <2 0 &gpio0 28 0>,
+// 			   <3 0 &gpio0 29 0>,
+// 			   <4 0 &gpio0 30 0>,
+// 			   <5 0 &gpio0 31 0>,
+// 			   <6 0 &gpio1 1 0>,
+// 			   <7 0 &gpio1 2 0>,
+// 			   <8 0 &gpio1 3 0>,
+// 			   <9 0 &gpio1 4 0>,
+// 			   <10 0 &gpio1 5 0>,
+// 			   <11 0 &gpio1 6 0>,
+// 			   <12 0 &gpio1 7 0>,
+// 			   <13 0 &gpio1 8 0>,
+// 			   <14 0 &gpio1 10 0>,
+// 			   <15 0 &gpio1 11 0>,
+// 			   <16 0 &gpio1 12 0>,
+// 			   <17 0 &gpio1 13 0>,
+// 			   <18 0 &gpio1 14 0>,
+// 			   <19 0 &gpio1 15 0>,
+// 			   <20 0 &gpio0 26 0>,
+// 			   <21 0 &gpio0 27 0>;
+// };

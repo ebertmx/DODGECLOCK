@@ -29,7 +29,7 @@
 #ifdef DLCK_LOG
 #include <zephyr/sys/printk.h>
 #include <zephyr/logging/log.h>
-LOG_MODULE_DECLARE(Controller_app, LOG_LEVEL_DBG);
+LOG_MODULE_DECLARE(Controller_app, LOG_LEVEL_ERR);
 #endif
 
 static bool notify_state_enabled;
@@ -76,7 +76,7 @@ static void setup_accept_list_cb(const struct bt_bond_info *info, void *user_dat
 			info->addr.a.val[1]);
 	if (err)
 	{
-		LOG_INF("Cannot add peer to filter accept list (err: %d)\n", err);
+		LOG_ERR("Cannot add peer to filter accept list (err: %d)\n", err);
 		(*bond_cnt) = -EIO;
 	}
 	else
@@ -162,7 +162,7 @@ void advertise_DCLK(struct k_work *work)
 	return;
 }
 
-// K_WORK_DEFINE(advertise_DCLK_work, advertise_DCLK);
+//K_WORK_DEFINE(advertise_DCLK_work, advertise_DCLK);
 // K_WORK_DEFINE(pair_DCLK_work, pair_DCLK);
 
 void start_advertising(void)
@@ -287,7 +287,7 @@ static void auth_pairing(struct bt_conn *conn)
 	char addr[BT_ADDR_LE_STR_LEN];
 	bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
 	int err = bt_conn_auth_pairing_confirm(conn);
-	printk("Pairing Authorized %d: %s\n", err, addr);
+	LOG_INF("Pairing Authorized %d: %s\n", err, addr);
 }
 
 static void auth_cancel(struct bt_conn *conn)
@@ -296,7 +296,7 @@ static void auth_cancel(struct bt_conn *conn)
 
 	bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
 
-	printk("Pairing cancelled: %s\n", addr);
+	LOG_INF("Pairing cancelled: %s\n", addr);
 }
 
 static void passkey_entry(struct bt_conn *conn)
@@ -307,7 +307,7 @@ static void passkey_entry(struct bt_conn *conn)
 
 void passkey_display(struct bt_conn *conn, unsigned int passkey)
 {
-	LOG_INF("Controller passkey = %ld", passkey);
+	LOG_INF("Controller passkey = %d", passkey);
 }
 
 void passkey_confirm(struct bt_conn *conn, unsigned int passkey)
@@ -429,7 +429,7 @@ int dclk_init(struct dclk_cb *callbacks)
 	// {
 	// 	err = -1;
 	// }
-	// start_advertising();
+	start_advertising();
 	
 
 	return 0;
