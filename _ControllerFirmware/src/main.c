@@ -21,89 +21,149 @@
 #include "DCLK.h"
 #include "Interface.h"
 
-LOG_MODULE_REGISTER(Controller_app, LOG_LEVEL_ERR);
+LOG_MODULE_REGISTER(Controller_app, LOG_LEVEL_INF);
 
 #define STACKSIZE 512
 #define PRIORITY 7
 
+#define CLOCK_RESET_VALUE 10000
+
 #define SYNC_INTERVAL 500
+/*
+
+
+*/
+/*SHOT CLOCK*/
+struct k_timer d_timer;
+static uint8_t clock_state = 0; // shot clock state
+static uint32_t clock_value = 0;
+static bool en_pair = false;
+
+static void d_clock_expire(struct k_timer *timer_id)
+{
+	clock_state = 2;
+	// k_timer_start(&d_timer, K_MSEC(CLOCK_RESET_VALUE), K_NO_WAIT);
+}
+/*
+
+
+*/
 
 /*DCLK Service and BLE*/
-static uint32_t app_clock_cb(void)
+static uint32_t DCLK_clock_cb(void)
 {
-	return get_dclock();
+	// d_clock = k_timer_remaining_get(&d_timer);
+	return k_timer_remaining_get(&d_timer);
+	;
 }
 
-static uint8_t app_state_cb(void)
+static uint8_t DCKL_state_cb(void)
 {
-	return get_dstate();
+	return clock_state;
 }
 
-static struct dclk_cb app_callbacks = {
-	.clock_cb = app_clock_cb,
-	.state_cb = app_state_cb,
+static struct dclk_cb DCLK_callbacks = {
+	.clock_cb = DCLK_clock_cb,
+	.state_cb = DCKL_state_cb,
 };
 
-static uint8_t pair_cb(void)
+/*
+
+
+*/
+/*Button Callbacks*/
+static uint8_t pair_cb(uint8_t evt)
 {
-	LOG_INF("Allow pairing");
-	dclk_pairing(true);
+	en_pair = true;
+	LOG_INF("pairing : %d", evt);
+	dclk_pairing();
+
+	return 0;
 }
-static uint8_t user_cb(void)
+static uint8_t user_cb(uint8_t evt)
 {
+	LOG_INF("user : %d", evt);
+	return 0;
 }
 
-static struct interface_cb inter_callbacks = {
-	.pair_cb = pair_cb,
-	.user_cb = user_cb,
-};
-
-void update_dclock(void)
+static uint8_t start_cb(uint8_t evt)
 {
-	uint32_t temp_dclock = get_dclock();
-	uint8_t temp_dstate = get_dstate();
-	while (1)
+	LOG_INF("start : %d", evt);
+	clock_state = 0;
+
+	k_timer_start(&d_timer, K_MSEC(CLOCK_RESET_VALUE), K_NO_WAIT);
+
+	return 0;
+}
+
+static uint8_t stop_cb(uint8_t evt)
+{
+
+	LOG_INF("stop : %d", evt);
+	return 0;
+}
+
+static struct interface_cb interface_callbacks =
 	{
-		temp_dclock = get_dclock();
-		temp_dstate = get_dstate();
-		dclk_send_clock_notify(&temp_dclock);
-		dclk_send_state_notify(&temp_dstate);
-
-		k_sleep(K_MSEC(SYNC_INTERVAL));
-	}
-}
+		.pair = pair_cb,
+		.user = user_cb,
+		.start = start_cb,
+		.stop = stop_cb,
+};
 
 void main(void)
 {
 	int err;
 
 	LOG_INF("Starting DCLK Controller \n");
+	k_timer_init(&d_timer, d_clock_expire, NULL);
 
-	err = interface_init(&inter_callbacks);
+	err = interface_init(&interface_callbacks);
 	if (err)
 	{
-		LOG_INF("Interface init failed (err %d)\n", err);
+		LOG_ERR("Interface init failed (err %d)\n", err);
 		return;
 	}
 
-	err = dclk_init(&app_callbacks, 123456);
+	err = dclk_init(&DCLK_callbacks);
 	if (err)
 	{
-		LOG_INF("Failed to init LBS (err:%d)\n", err);
+		LOG_ERR("Failed to init LBS (err:%d)\n", err);
 		return;
 	}
-	LOG_INF("Bluetooth initialized\n");
-	LOG_INF("MAIN--sleep");
 
-	dclk_pairing(true);
+	LOG_INF("Initialized \n");
 
+	static uint32_t d_clock = 0;
+	static uint8_t d_state = 0;
+	static char num_conn = '0';
 
 	for (;;)
 	{
-		k_sleep(K_FOREVER);
+
+		k_sched_lock();
+
+		d_clock = ROUND_UP(k_timer_remaining_get(&d_timer), 1000) / 1000;
+		d_state = clock_state;
+		dclk_send_clock_notify(&d_clock);
+		dclk_send_state_notify(&d_state);
+		k_sched_unlock();
+
+		if(en_pair)
+		{
+			num_conn = 'P';
+		}
+		err = interface_update(&d_clock, &d_state, &num_conn);
+		if (err)
+		{
+			LOG_ERR("DISPLAY NOT UPDATED");
+		}
+		//	LOG_INF("RUNNING\n");
+		k_sleep(K_MSEC(SYNC_INTERVAL));
 	}
+	return;
 }
 
 // Start timer thread
 
-K_THREAD_DEFINE(dclock_update, STACKSIZE, update_dclock, NULL, NULL, NULL, PRIORITY, 0, 0);
+// K_THREAD_DEFINE(dclock_update, STACKSIZE, update_dclock, NULL, NULL, NULL, PRIORITY, 0, 0);

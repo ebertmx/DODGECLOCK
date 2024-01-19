@@ -14,128 +14,282 @@
 
 #include "Interface.h"
 
+#include <stdint.h>
+#include <zephyr/drivers/display.h>
+#include <zephyr/display/cfb.h>
+
+#include <zephyr/sys/printk.h>
+#include <zephyr/logging/log.h>
+#include <zephyr/drivers/pwm.h>
+
+LOG_MODULE_DECLARE(Controller_app, LOG_LEVEL_ERR);
+
+#define DISPLAY_BUFFER_PITCH 128
+static const struct device *display = DEVICE_DT_GET(DT_NODELABEL(ssd1306));
+
 #define SW0_NODE DT_NODELABEL(button0)
 #define SW1_NODE DT_NODELABEL(button1)
 #define SW2_NODE DT_NODELABEL(button2)
-#define PAIRING_BUTTON DT_NODELABEL(button3)
+#define SW3_NODE DT_NODELABEL(button3)
 
-static const struct gpio_dt_spec button0 = GPIO_DT_SPEC_GET(SW0_NODE, gpios);
-static const struct gpio_dt_spec button1 = GPIO_DT_SPEC_GET(SW1_NODE, gpios);
-static const struct gpio_dt_spec userbtn = GPIO_DT_SPEC_GET(SW2_NODE, gpios);
-static const struct gpio_dt_spec pairbtn = GPIO_DT_SPEC_GET(PAIRING_BUTTON, gpios);
+// PWM
 
-static struct gpio_callback button0_cb_data;
-static struct gpio_callback button1_cb_data;
-static struct gpio_callback userbtn_cb_data;
-static struct gpio_callback pairbtn_cb_data;
+#define MIN_PERIOD PWM_MSEC(2U) / 128U
+#define MAX_PERIOD PWM_MSEC(2U)
 
-struct k_timer d_timer;
-static uint8_t d_state = 0;		 // shot clock state
-static uint32_t d_clock = 10000; // shot clock in ms
+static const struct pwm_dt_spec pwm_buzz = PWM_DT_SPEC_GET(DT_ALIAS(pwm_led0));
 
-static struct interface_cb inter_cb;
-/*DCLOCK*/
+/*
 
-static void d_clock_expire(struct k_timer *timer_id)
+
+*/
+/* Button Event Handler */
+
+void handle_button_event(struct k_work *work)
 {
-	d_state = 2;
-	d_clock = 0;
-	d_clock = 10000;
-	d_state = 0;
-	k_timer_start(&d_timer, K_MSEC(d_clock), K_NO_WAIT);
+	LOG_DBG("handle_button_event");
+	struct button_t *btn = CONTAINER_OF(work, struct button_t, btn_work);
+	btn->evt++;
+	btn->active_func_cb(btn->evt);
 }
 
-static void pair_work_cb(void)
+/*
+
+
+*/
+/*Callback Buttons*/
+
+static void button_event_cb(const struct device *dev, struct gpio_callback *cb, uint32_t pins)
 {
-	inter_cb.pair_cb();
-}
-K_WORK_DEFINE(initiate_pairing, pair_work_cb);
-/*UI*/
+	LOG_DBG("button_event_cb");
+	struct button_t *btn = CONTAINER_OF(cb, struct button_t, gpio_cb_data);
 
-static void button_pressed(const struct device *dev, struct gpio_callback *cb, uint32_t pins)
-{
-
-	if (pins == BIT(button0.pin))
-	{
-		k_work_submit(&initiate_pairing);
-	}
-	else if (pins == BIT(button1.pin))
-	{
-		d_state = 2;
-		d_clock = 0;
-		k_timer_stop(&d_timer);
-	}
-	else if (pins == BIT(userbtn.pin))
-	{
-		d_state = 0;
-		k_timer_start(&d_timer, K_MSEC(d_clock), K_NO_WAIT);
-	}
-
-	else if (pins == BIT(pairbtn.pin))
-	{
-		d_state = 0;
-		d_clock = 10000;
-		k_timer_start(&d_timer, K_MSEC(d_clock), K_NO_WAIT);
-	}
+	k_work_submit(&btn->btn_work);
 }
 
-uint32_t get_dclock(void)
+static void pair_btn_cb(const struct device *dev, struct gpio_callback *cb, uint32_t pins)
 {
-	if (d_state == 0)
-	{
-		d_clock = k_timer_remaining_get(&d_timer);
-	}
-
-	return d_clock;
+}
+static void user_btn_cb(const struct device *dev, struct gpio_callback *cb, uint32_t pins)
+{
+}
+static void start_btn_cb(const struct device *dev, struct gpio_callback *cb, uint32_t pins)
+{
+}
+static void stop_btn_cb(const struct device *dev, struct gpio_callback *cb, uint32_t pins)
+{
 }
 
-uint8_t get_dstate(void)
+/*Button Declarations*/
+
+static struct button_t pair_btn =
+	{
+		.val = 1,
+		.evt = 0,
+		.gpio_spec = GPIO_DT_SPEC_GET(SW0_NODE, gpios),
+		.gpio_cb_handler = button_event_cb,
+		.gpio_flags = GPIO_INT_EDGE_BOTH,
+
+		.btn_work_handler = handle_button_event,
+};
+static struct button_t user_btn =
+	{
+		.val = 2,
+		.evt = 0,
+		.gpio_spec = GPIO_DT_SPEC_GET(SW1_NODE, gpios),
+		.gpio_cb_handler = button_event_cb,
+		.gpio_flags = GPIO_INT_EDGE_BOTH,
+		.btn_work_handler = handle_button_event,
+
+};
+static struct button_t start_btn =
+	{
+		.val = 3,
+		.evt = 0,
+		.gpio_spec = GPIO_DT_SPEC_GET(SW2_NODE, gpios),
+		.gpio_cb_handler = button_event_cb,
+		.gpio_flags = GPIO_INT_EDGE_BOTH,
+
+		.btn_work_handler = handle_button_event,
+};
+static struct button_t stop_btn =
+	{
+		.val = 4,
+		.evt = 0,
+		.gpio_spec = GPIO_DT_SPEC_GET(SW3_NODE, gpios),
+		.gpio_cb_handler = button_event_cb,
+		.gpio_flags = GPIO_INT_EDGE_BOTH,
+
+		.btn_work_handler = handle_button_event,
+};
+
+/*
+
+
+*/
+/*Initialize*/
+
+int setup_button(struct button_t *button, active_func user_cb)
 {
-	return d_state;
+
+	/*GPIO*/
+	int err = !device_is_ready(button->gpio_spec.port);
+
+	gpio_pin_configure_dt(&button->gpio_spec, GPIO_INPUT | GPIO_PULL_UP);
+
+	/*Interrupt*/
+
+	gpio_pin_interrupt_configure_dt(&button->gpio_spec, button->gpio_flags);
+
+	gpio_init_callback(&button->gpio_cb_data, button->gpio_cb_handler, BIT(button->gpio_spec.pin));
+
+	err = abs(gpio_add_callback(button->gpio_spec.port, &button->gpio_cb_data));
+
+	/* WORK */
+
+	k_work_init(&button->btn_work, handle_button_event);
+
+	button->active_func_cb = user_cb;
+
+	return err;
+}
+
+int buzzer_init()
+{
+
+	if (!pwm_is_ready_dt(&pwm_buzz))
+	{
+		LOG_ERR("Error: PWM device %s is not ready\n",
+				pwm_buzz.dev->name);
+		return 0;
+	}
+
+	return 0;
+}
+
+int display_init()
+{
+	int err = cfb_framebuffer_init(display);
+	if (err)
+	{
+		return err;
+	}
+	err = cfb_framebuffer_set_font(display, 1);
+	if (err)
+	{
+		return err;
+	}
+	err = cfb_print(display, "DCLK Start", 0, 0);
+	if (err)
+	{
+		return err;
+	}
+	err = cfb_framebuffer_invert(display);
+	if (err)
+	{
+		return err;
+	}
+	err = cfb_framebuffer_finalize(display);
+	if (err)
+	{
+		return err;
+	}
+	err = cfb_framebuffer_clear(display, true);
+
+	return err;
 }
 
 int interface_init(struct interface_cb *app_cb)
 {
 	int err;
-	err = device_is_ready(button0.port);
-	err &= device_is_ready(button1.port);
-	err &= device_is_ready(userbtn.port);
-	err &= device_is_ready(pairbtn.port);
-	if (!err)
+
+	err = setup_button(&pair_btn, app_cb->pair);
+	err = setup_button(&user_btn, app_cb->user);
+	err = setup_button(&start_btn, app_cb->start);
+	err = setup_button(&stop_btn, app_cb->stop);
+
+	if (err)
 	{
+		LOG_ERR("Failed to setup buttons");
+		return err;
+	}
+
+	err = display_init();
+	if (err)
+	{
+		LOG_ERR("Failed to setup display");
 		return !err;
 	}
 
-	gpio_pin_configure_dt(&button0, GPIO_INPUT | GPIO_PULL_UP);
-	gpio_pin_configure_dt(&button1, GPIO_INPUT);
-	gpio_pin_configure_dt(&userbtn, GPIO_INPUT);
-	gpio_pin_configure_dt(&pairbtn, GPIO_INPUT);
-
-	gpio_pin_interrupt_configure_dt(&button0, GPIO_INT_EDGE_RISING);
-	gpio_pin_interrupt_configure_dt(&button1, GPIO_INT_EDGE_RISING);
-	gpio_pin_interrupt_configure_dt(&userbtn, GPIO_INT_EDGE_RISING);
-	gpio_pin_interrupt_configure_dt(&pairbtn, GPIO_INT_EDGE_RISING);
-
-	gpio_init_callback(&button0_cb_data, button_pressed, BIT(button0.pin));
-	gpio_init_callback(&button1_cb_data, button_pressed, BIT(button1.pin));
-	gpio_init_callback(&userbtn_cb_data, button_pressed, BIT(userbtn.pin));
-	gpio_init_callback(&pairbtn_cb_data, button_pressed, BIT(pairbtn.pin));
-
-	gpio_add_callback(button0.port, &button0_cb_data);
-	gpio_add_callback(button1.port, &button1_cb_data);
-	gpio_add_callback(userbtn.port, &userbtn_cb_data);
-	gpio_add_callback(pairbtn.port, &pairbtn_cb_data);
-
-	if (app_cb)
+	err = buzzer_init();
+	if (err)
 	{
-		inter_cb.pair_cb = app_cb->pair_cb;
-		inter_cb.user_cb = app_cb->user_cb;
+		LOG_ERR("Failed to setup buzzer");
+		return !err;
 	}
 
-	d_clock = 10000;
-	d_state = 0;
-	k_timer_start(&d_timer, K_MSEC(d_clock), K_NO_WAIT);
 	return 0;
 }
 
-K_TIMER_DEFINE(d_timer, d_clock_expire, NULL);
+static void stop_buzz(struct k_timer *timer_id)
+{
+	pwm_set_dt(&pwm_buzz, 0, 0);
+}
+
+K_TIMER_DEFINE(buzz_timer, stop_buzz, NULL);
+
+void buzz()
+{
+	pwm_set_dt(&pwm_buzz, MAX_PERIOD, MAX_PERIOD / 2U);
+	k_timer_start(&buzz_timer, K_MSEC(500), K_NO_WAIT);
+}
+
+static uint32_t dis_clock = 0;
+static uint8_t dis_state = 2;
+static char dis_num_conn = 0;
+
+int interface_update(uint32_t *clock, uint8_t *state, char *num_conn)
+{
+	LOG_INF("Update Display");
+	int err = 0;
+	bool ref = (dis_clock == *clock) && (dis_state == *state) && (dis_num_conn == *num_conn);
+	if (!ref)
+	{
+		dis_clock = *clock;
+		dis_state = *state;
+		dis_num_conn = *num_conn;
+		char str[15];
+		if (10 == dis_clock)
+		{
+			sprintf(str, "T:- S%d %c", dis_state, dis_num_conn);
+		}
+		else
+		{
+			sprintf(str, "T:%d S%d %c", dis_clock, dis_state, dis_num_conn);
+		}
+
+		int err = cfb_print(display, str, 0, 0);
+		if (err)
+		{
+			LOG_ERR("Failed to print display");
+			return err;
+		}
+		err = cfb_framebuffer_finalize(display);
+		if (err)
+		{
+			LOG_ERR("Failed to write display");
+			return err;
+		}
+		if (dis_clock < 3)
+		{
+			buzz();
+		}
+	}
+	else
+	{
+		err = -1;
+		LOG_INF("Update not required");
+	}
+
+	return err;
+}

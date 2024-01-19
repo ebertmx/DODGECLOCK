@@ -69,7 +69,7 @@ extern "C"
 	 * @retval 0 If the operation was successful.
 	 *           Otherwise, a (negative) error code is returned.
 	 */
-	int dclk_init(struct dclk_cb *callbacks, unsigned int custom_passkey);
+	int dclk_init(struct dclk_cb *callbacks);
 
 	/** @brief Enables/Disables advertizing and
 	 * pairing of DCLK blueooth service
@@ -77,12 +77,12 @@ extern "C"
 	 * This starts or stops advertizing immediately and
 	 * sets the pairing state to enable
 	 *
-	 * @param[in] enable enables on true and disables on false
+	 * @param[in] void 
 	 *
 	 * @retval 0 If the operation was successful.
 	 *           Otherwise, a (negative) error code is returned.
 	 */
-	int dclk_pairing(bool enable);
+	int dclk_pairing(void);
 
 	/** @brief Send the clock state as notification.
 	 *
