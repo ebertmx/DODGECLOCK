@@ -20,7 +20,7 @@ extern "C"
 #include <zephyr/device.h>
 #include <zephyr/devicetree.h>
 #include <zephyr/settings/settings.h>
-#include "helper_q.h"
+
 	/** @brief
 	 *
 	 * @param evt the button event which just occurred
