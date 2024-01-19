@@ -34,8 +34,8 @@ static const struct device *display = DEVICE_DT_GET(DT_NODELABEL(ssd1306));
 
 // PWM
 
-#define MIN_PERIOD PWM_MSEC(10U) / 128U
-#define MAX_PERIOD PWM_MSEC(10U)
+#define MIN_PERIOD PWM_MSEC(2U) / 128U
+#define MAX_PERIOD PWM_MSEC(2U)
 
 static const struct pwm_dt_spec pwm_buzz = PWM_DT_SPEC_GET(DT_ALIAS(pwm_led0));
 
@@ -246,9 +246,9 @@ void buzz()
 
 static uint32_t dis_clock = 0;
 static uint8_t dis_state = 2;
-static uint8_t dis_num_conn = 0;
+static char dis_num_conn = 0;
 
-int interface_update(uint32_t *clock, uint8_t *state, uint8_t *num_conn)
+int interface_update(uint32_t *clock, uint8_t *state, char *num_conn)
 {
 	LOG_INF("Update Display");
 	int err = 0;
@@ -261,11 +261,11 @@ int interface_update(uint32_t *clock, uint8_t *state, uint8_t *num_conn)
 		char str[15];
 		if (10 == dis_clock)
 		{
-			sprintf(str, "T:- S%d %d", dis_state, dis_num_conn);
+			sprintf(str, "T:- S%d %c", dis_state, dis_num_conn);
 		}
 		else
 		{
-			sprintf(str, "T:%d S%d %d", dis_clock, dis_state, dis_num_conn);
+			sprintf(str, "T:%d S%d %c", dis_clock, dis_state, dis_num_conn);
 		}
 
 		int err = cfb_print(display, str, 0, 0);
@@ -280,7 +280,7 @@ int interface_update(uint32_t *clock, uint8_t *state, uint8_t *num_conn)
 			LOG_ERR("Failed to write display");
 			return err;
 		}
-		if (dis_clock < 7)
+		if (dis_clock < 3)
 		{
 			buzz();
 		}

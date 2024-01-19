@@ -37,6 +37,7 @@ LOG_MODULE_REGISTER(Controller_app, LOG_LEVEL_INF);
 struct k_timer d_timer;
 static uint8_t clock_state = 0; // shot clock state
 static uint32_t clock_value = 0;
+static bool en_pair = false;
 
 static void d_clock_expire(struct k_timer *timer_id)
 {
@@ -73,6 +74,7 @@ static struct dclk_cb DCLK_callbacks = {
 /*Button Callbacks*/
 static uint8_t pair_cb(uint8_t evt)
 {
+	en_pair = true;
 	LOG_INF("pairing : %d", evt);
 	dclk_pairing();
 
@@ -132,25 +134,27 @@ void main(void)
 
 	LOG_INF("Initialized \n");
 
-
 	static uint32_t d_clock = 0;
 	static uint8_t d_state = 0;
-	static uint8_t num_conn = 1;
+	static char num_conn = '0';
 
 	for (;;)
 	{
 
 		k_sched_lock();
 
-		d_clock = ROUND_UP(k_timer_remaining_get(&d_timer),1000)/1000;
+		d_clock = ROUND_UP(k_timer_remaining_get(&d_timer), 1000) / 1000;
 		d_state = clock_state;
-
-		k_sched_unlock();
-
 		dclk_send_clock_notify(&d_clock);
 		dclk_send_state_notify(&d_state);
+		k_sched_unlock();
+
+		if(en_pair)
+		{
+			num_conn = 'P';
+		}
 		err = interface_update(&d_clock, &d_state, &num_conn);
-		if(err)
+		if (err)
 		{
 			LOG_ERR("DISPLAY NOT UPDATED");
 		}
