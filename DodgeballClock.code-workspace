@@ -17,7 +17,8 @@
 			"gap.h": "c",
 			"device.h": "c",
 			"lvgl.h": "c",
-			"lv_printf.h": "c"
+			"lv_printf.h": "c",
+			"pwm.h": "c"
 		},
 		"nrf-connect.debugging.bindings": {
 			"${workspaceFolder}/_ControllerFirmware/build_810": "Launch build_810"

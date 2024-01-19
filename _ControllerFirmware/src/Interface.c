@@ -20,17 +20,24 @@
 
 #include <zephyr/sys/printk.h>
 #include <zephyr/logging/log.h>
-
-#include "logo.h"
-#define DISPLAY_BUFFER_PITCH 128
-static const struct device *display = DEVICE_DT_GET(DT_NODELABEL(ssd1306));
+#include <zephyr/drivers/pwm.h>
 
 LOG_MODULE_DECLARE(Controller_app, LOG_LEVEL_ERR);
+
+#define DISPLAY_BUFFER_PITCH 128
+static const struct device *display = DEVICE_DT_GET(DT_NODELABEL(ssd1306));
 
 #define SW0_NODE DT_NODELABEL(button0)
 #define SW1_NODE DT_NODELABEL(button1)
 #define SW2_NODE DT_NODELABEL(button2)
 #define SW3_NODE DT_NODELABEL(button3)
+
+// PWM
+
+#define MIN_PERIOD PWM_MSEC(10U) / 128U
+#define MAX_PERIOD PWM_MSEC(10U)
+
+static const struct pwm_dt_spec pwm_buzz = PWM_DT_SPEC_GET(DT_ALIAS(pwm_led0));
 
 /*
 
@@ -147,6 +154,19 @@ int setup_button(struct button_t *button, active_func user_cb)
 	return err;
 }
 
+int buzzer_init()
+{
+
+	if (!pwm_is_ready_dt(&pwm_buzz))
+	{
+		LOG_ERR("Error: PWM device %s is not ready\n",
+				pwm_buzz.dev->name);
+		return 0;
+	}
+
+	return 0;
+}
+
 int display_init()
 {
 	int err = cfb_framebuffer_init(display);
@@ -201,13 +221,34 @@ int interface_init(struct interface_cb *app_cb)
 		return !err;
 	}
 
+	err = buzzer_init();
+	if (err)
+	{
+		LOG_ERR("Failed to setup buzzer");
+		return !err;
+	}
+
 	return 0;
+}
+
+static void stop_buzz(struct k_timer *timer_id)
+{
+	pwm_set_dt(&pwm_buzz, 0, 0);
+}
+
+K_TIMER_DEFINE(buzz_timer, stop_buzz, NULL);
+
+void buzz()
+{
+	pwm_set_dt(&pwm_buzz, MAX_PERIOD, MAX_PERIOD / 2U);
+	k_timer_start(&buzz_timer, K_MSEC(500), K_NO_WAIT);
 }
 
 static uint32_t dis_clock = 0;
 static uint8_t dis_state = 2;
 static uint8_t dis_num_conn = 0;
-int interface_display_update(uint32_t *clock, uint8_t *state, uint8_t *num_conn)
+
+int interface_update(uint32_t *clock, uint8_t *state, uint8_t *num_conn)
 {
 	LOG_INF("Update Display");
 	int err = 0;
@@ -239,7 +280,12 @@ int interface_display_update(uint32_t *clock, uint8_t *state, uint8_t *num_conn)
 			LOG_ERR("Failed to write display");
 			return err;
 		}
-	}else
+		if (dis_clock < 7)
+		{
+			buzz();
+		}
+	}
+	else
 	{
 		err = -1;
 		LOG_INF("Update not required");

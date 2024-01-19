@@ -149,7 +149,7 @@ void main(void)
 
 		dclk_send_clock_notify(&d_clock);
 		dclk_send_state_notify(&d_state);
-		err = interface_display_update(&d_clock, &d_state, &num_conn);
+		err = interface_update(&d_clock, &d_state, &num_conn);
 		if(err)
 		{
 			LOG_ERR("DISPLAY NOT UPDATED");
