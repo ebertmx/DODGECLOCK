@@ -8,7 +8,7 @@ This project is in progress...
 ### Controller
 A first iteration PCB was order and successfully programmed. The firmware was tested with the MCU powered externally (without battery or linear regulator).
 
-####Problem with Linear Regulator
+#### Problem with Linear Regulator
 The BLE functionality on the PCB was not functional when powered by battery. Trouble shooting revealed the linear regulator is not acceptable for the current requirement of the antenna. Voltage spike when the antenna turns on crash the MCU.
 ![VDD rail when antenna turned on](https://github.com/ebertmx/DODGECLOCK_MK4/assets/87283949/7e6d919e-b373-41c0-876a-24a9da3ff127)
 
