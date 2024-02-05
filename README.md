@@ -2,10 +2,10 @@
 
 A shot clock system for competitve dodgeball. The system consists of two devices: display and controller.
 
-##Status
+## Status
 This project is in progress...
 
-###Controller
+### Controller
 A first iteration PCB was order and successfully programmed. The firmware was tested with the MCU powered externally (without battery or linear regulator).
 
 ####Problem with Linear Regulator
@@ -14,15 +14,15 @@ The BLE functionality on the PCB was not functional when powered by battery. Tro
 
 A second iteration board is in progress to improve performance and fix the power delivery problems.
 
-###Display
+### Display
 The display 7-segment frame was pritned with TPU and succesffuly passed all impact tests.
 A nrf52 dongle will be used as the MCU for the display to save on time, costs, and assembly requirements.
 The LED strip, power supply, and nrf52 dongle have been tested in a bench top environment succeffully.
 
 ![image](https://github.com/ebertmx/DODGECLOCK_MK4/assets/87283949/9de9cff6-2c16-4b95-a077-c568292037b8)
 
-##Description
-###Controller
+## Description
+### Controller
 The controller device includes
 - A PCB and MCU with BLE capabilities
 - An LCD
@@ -36,7 +36,7 @@ The device acts as a peripheral/server. It accepts secure connections and provid
 ![image](https://github.com/ebertmx/DODGECLOCK_MK4/assets/87283949/3552f4a8-60b5-484d-9c1b-a054e468b64c)
 
 
-###Display
+### Display
 The display device includes
 - a WS2813B LED strip formed into a 7-segment pattern
 - A PCB and MCU with BLE capablilities
