@@ -1,0 +1,11 @@
+LTspice 24.0.9 for Windows
+Circuit: * C:\Users\ebert\Documents\DODGECLOCK_MK5\_Electrical\BLE_REMOTE\SPICE_TESTING\Draft1.asc
+Start Time: Wed Feb 28 19:55:54 2024
+solver = Normal
+Maximum thread count: 8
+tnom = 27
+temp = 27
+method = modified trap
+Direct Newton iteration for .op point succeeded.
+Total elapsed time: 0.354 seconds.
+
