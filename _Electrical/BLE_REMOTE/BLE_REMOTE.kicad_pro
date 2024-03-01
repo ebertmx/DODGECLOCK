@@ -55,15 +55,7 @@
           "width": 0.0
         }
       ],
-      "drc_exclusions": [
-        "annular_width|180938000|119008000|95d92003-c960-4eed-843a-374bbf09199b|00000000-0000-0000-0000-000000000000",
-        "annular_width|180938000|127648000|043e74af-d6e4-4fb3-b918-9410618a8d51|00000000-0000-0000-0000-000000000000",
-        "annular_width|184738000|119008000|5a503628-91b6-497f-8163-e49a51213202|00000000-0000-0000-0000-000000000000",
-        "annular_width|184738000|127648000|05f4d6cb-f3b9-4d48-b36a-a8f7e2fce077|00000000-0000-0000-0000-000000000000",
-        "lib_footprint_mismatch|181364250|129449012|f7aded4d-7f88-4f60-9c18-92f46ba591dc|00000000-0000-0000-0000-000000000000",
-        "lib_footprint_mismatch|201249999|121543750|3d15f588-b42d-4b98-bde0-bf0b1a362841|00000000-0000-0000-0000-000000000000",
-        "missing_courtyard|201249999|123100000|3d15f588-b42d-4b98-bde0-bf0b1a362841|00000000-0000-0000-0000-000000000000"
-      ],
+      "drc_exclusions": [],
       "meta": {
         "version": 2
       },
@@ -217,7 +209,9 @@
   },
   "erc": {
     "erc_exclusions": [
+      "pin_to_pin|1485900|558800|fecd64e5-96f8-4ee0-bada-521d57e6b7e3|1576c62f-43df-4aec-8174-c27877653db1|/3c7105d6-b2e1-4841-966d-0562ae88783f/01d40fd6-ccdc-442b-bfe3-30d4d8ca438d|/3c7105d6-b2e1-4841-966d-0562ae88783f/01d40fd6-ccdc-442b-bfe3-30d4d8ca438d|/3c7105d6-b2e1-4841-966d-0562ae88783f/df7514b4-387c-47b1-a1bd-e93660408c5b/a095a39f-6b3f-4eb2-81ef-a7fa39c10239",
       "pin_to_pin|2006600|368300|6042ddfc-effb-4857-9245-7beff4b13e2d|b6242dd3-6ab1-40b2-9797-82a00e8fa2b7|/3c7105d6-b2e1-4841-966d-0562ae88783f/df7514b4-387c-47b1-a1bd-e93660408c5b|/3c7105d6-b2e1-4841-966d-0562ae88783f/df7514b4-387c-47b1-a1bd-e93660408c5b|/3c7105d6-b2e1-4841-966d-0562ae88783f/df7514b4-387c-47b1-a1bd-e93660408c5b",
+      "pin_to_pin|2222500|647700|b6242dd3-6ab1-40b2-9797-82a00e8fa2b7|6042ddfc-effb-4857-9245-7beff4b13e2d|/3c7105d6-b2e1-4841-966d-0562ae88783f/df7514b4-387c-47b1-a1bd-e93660408c5b|/3c7105d6-b2e1-4841-966d-0562ae88783f/df7514b4-387c-47b1-a1bd-e93660408c5b|/3c7105d6-b2e1-4841-966d-0562ae88783f/df7514b4-387c-47b1-a1bd-e93660408c5b",
       "pin_to_pin|2349500|749300|a2323284-304f-49c0-89b9-2315cc45ad4d|fecd64e5-96f8-4ee0-bada-521d57e6b7e3|/3c7105d6-b2e1-4841-966d-0562ae88783f/df7514b4-387c-47b1-a1bd-e93660408c5b|/3c7105d6-b2e1-4841-966d-0562ae88783f/df7514b4-387c-47b1-a1bd-e93660408c5b|/3c7105d6-b2e1-4841-966d-0562ae88783f/01d40fd6-ccdc-442b-bfe3-30d4d8ca438d",
       "power_pin_not_driven|1536700|1371600|9f5f8dd2-02de-484a-830e-990e17a91064|00000000-0000-0000-0000-000000000000|||",
       "power_pin_not_driven|1536700|609600|b303c1f1-c42c-42bb-81bf-0f525936a752|00000000-0000-0000-0000-000000000000|||",
@@ -523,25 +517,24 @@
       "/MCU/ANT": "HF",
       "/MCU/SWDCLK": "Signal",
       "/MCU/SWDIO": "Signal",
-      "/Power/BAT_CTRL": "Signal",
-      "/Power/BAT_IN": "Power",
       "/Power/BQ_EN1": "Signal",
       "/Power/BQ_EN2": "Signal",
+      "/Power/BQ_ILIM": "Signal",
+      "/Power/BQ_ISET": "Signal",
       "/Power/BQ_ITERM": "Signal",
       "/Power/BQ_TMR": "Signal",
-      "/Power/VBAT": "Power",
-      "BAT_EN": "Signal",
+      "/Power/Battery/BAT+": "Power",
+      "/Power/Battery/BAT-": "Power",
+      "/Power/Battery/LOW_BAT": "Signal",
+      "/Power/Battery/VBAT": "Power",
       "BUTTON": "Signal",
       "BUZZ": "Signal",
       "DIS_EN": "Signal",
       "DIS_SCL": "Signal",
       "DIS_SDA": "Signal",
       "Net-(A1-SIG)": "HF",
-      "Net-(R13-Pad2)": "Signal",
       "Net-(U1-XC1)": "HF",
       "Net-(U1-XC2)": "HF",
-      "Net-(U2-ILIM)": "Signal",
-      "Net-(U2-ISET)": "Signal",
       "SWITCH": "Signal",
       "TEST": "Signal",
       "TEST_BAT": "Signal",
@@ -709,6 +702,10 @@
     [
       "01d40fd6-ccdc-442b-bfe3-30d4d8ca438d",
       "Peripherals"
+    ],
+    [
+      "a095a39f-6b3f-4eb2-81ef-a7fa39c10239",
+      "Battery"
     ]
   ],
   "text_variables": {}

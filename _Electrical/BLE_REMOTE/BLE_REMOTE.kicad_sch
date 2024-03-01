@@ -267,14 +267,14 @@
     )
   )
 
-  (sheet (at 34.29 110.49) (size 107.95 38.1) (fields_autoplaced)
+  (sheet (at 34.29 110.49) (size 82.55 35.56) (fields_autoplaced)
     (stroke (width 0.1524) (type solid))
     (fill (color 0 0 0 0.0000))
     (uuid 01d40fd6-ccdc-442b-bfe3-30d4d8ca438d)
     (property "Sheetname" "Peripherals" (at 34.29 109.7784 0)
       (effects (font (size 1.27 1.27)) (justify left bottom))
     )
-    (property "Sheetfile" "BLEC_peripherals.kicad_sch" (at 34.29 149.1746 0)
+    (property "Sheetfile" "BLEC_peripherals.kicad_sch" (at 34.29 146.6346 0)
       (effects (font (size 1.27 1.27)) (justify left top))
     )
     (instances
@@ -301,14 +301,14 @@
     )
   )
 
-  (sheet (at 30.48 40.64) (size 30.48 29.21) (fields_autoplaced)
+  (sheet (at 30.48 40.64) (size 85.09 46.99) (fields_autoplaced)
     (stroke (width 0.1524) (type solid))
     (fill (color 0 0 0 0.0000))
     (uuid df7514b4-387c-47b1-a1bd-e93660408c5b)
     (property "Sheetname" "Power" (at 30.48 39.9284 0)
       (effects (font (size 1.27 1.27)) (justify left bottom))
     )
-    (property "Sheetfile" "BLEC_power.kicad_sch" (at 30.48 70.4346 0)
+    (property "Sheetfile" "BLEC_power.kicad_sch" (at 30.48 88.2146 0)
       (effects (font (size 1.27 1.27)) (justify left top))
     )
     (instances
