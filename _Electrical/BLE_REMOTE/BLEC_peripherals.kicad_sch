@@ -911,7 +911,7 @@
   (symbol (lib_id "Device:LED") (at 63.5 59.69 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid 0d895ebc-60ed-4927-b609-a704bbf22269)
-    (property "Reference" "D5" (at 61.9125 54.61 0)
+    (property "Reference" "D4" (at 61.9125 54.61 0)
       (effects (font (size 1.27 1.27)))
     )
     (property "Value" "LED" (at 61.9125 57.15 0)
@@ -934,7 +934,7 @@
     (instances
       (project "BLE_REMOTE"
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/01d40fd6-ccdc-442b-bfe3-30d4d8ca438d"
-          (reference "D5") (unit 1)
+          (reference "D4") (unit 1)
         )
       )
     )
@@ -943,7 +943,7 @@
   (symbol (lib_id "Device:R") (at 137.16 50.8 90) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid 119a5038-b41d-49b3-88b1-4812ff6bcee7)
-    (property "Reference" "R21" (at 137.16 44.45 90)
+    (property "Reference" "R16" (at 137.16 44.45 90)
       (effects (font (size 1.27 1.27)))
     )
     (property "Value" "220" (at 137.16 46.99 90)
@@ -966,7 +966,7 @@
     (instances
       (project "BLE_REMOTE"
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/01d40fd6-ccdc-442b-bfe3-30d4d8ca438d"
-          (reference "R21") (unit 1)
+          (reference "R16") (unit 1)
         )
       )
     )
@@ -975,7 +975,7 @@
   (symbol (lib_id "Simulation_SPICE:NPN") (at 146.05 50.8 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid 193f7c82-8698-4ddf-b3fd-1f34a66b6de8)
-    (property "Reference" "Q3" (at 151.13 49.53 0)
+    (property "Reference" "Q2" (at 151.13 49.53 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Value" "NPN" (at 151.13 52.07 0)
@@ -1008,7 +1008,7 @@
     (instances
       (project "BLE_REMOTE"
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/01d40fd6-ccdc-442b-bfe3-30d4d8ca438d"
-          (reference "Q3") (unit 1)
+          (reference "Q2") (unit 1)
         )
       )
     )
@@ -1017,7 +1017,7 @@
   (symbol (lib_id "power:GND") (at 54.61 46.99 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid 20bccbe5-43a8-4a8f-a19f-72dd10cb4ae7)
-    (property "Reference" "#PWR027" (at 54.61 53.34 0)
+    (property "Reference" "#PWR022" (at 54.61 53.34 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 54.61 52.07 0)
@@ -1033,7 +1033,7 @@
     (instances
       (project "BLE_REMOTE"
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/01d40fd6-ccdc-442b-bfe3-30d4d8ca438d"
-          (reference "#PWR027") (unit 1)
+          (reference "#PWR022") (unit 1)
         )
       )
     )
@@ -1068,7 +1068,7 @@
           (reference "J5") (unit 1)
         )
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/01d40fd6-ccdc-442b-bfe3-30d4d8ca438d"
-          (reference "J8") (unit 1)
+          (reference "J7") (unit 1)
         )
       )
     )
@@ -1077,7 +1077,7 @@
   (symbol (lib_id "power:GND") (at 72.39 93.98 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid 372e7da0-bec0-450e-85c2-f0827587761f)
-    (property "Reference" "#PWR031" (at 72.39 100.33 0)
+    (property "Reference" "#PWR026" (at 72.39 100.33 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 72.39 99.06 0)
@@ -1093,7 +1093,7 @@
     (instances
       (project "BLE_REMOTE"
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/01d40fd6-ccdc-442b-bfe3-30d4d8ca438d"
-          (reference "#PWR031") (unit 1)
+          (reference "#PWR026") (unit 1)
         )
       )
     )
@@ -1102,7 +1102,7 @@
   (symbol (lib_id "power:GND") (at 54.61 60.96 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid 4982eeec-d027-4127-ae8d-8992a5f0683e)
-    (property "Reference" "#PWR028" (at 54.61 67.31 0)
+    (property "Reference" "#PWR023" (at 54.61 67.31 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 54.61 66.04 0)
@@ -1118,7 +1118,7 @@
     (instances
       (project "BLE_REMOTE"
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/01d40fd6-ccdc-442b-bfe3-30d4d8ca438d"
-          (reference "#PWR028") (unit 1)
+          (reference "#PWR023") (unit 1)
         )
       )
     )
@@ -1127,7 +1127,7 @@
   (symbol (lib_id "Simulation_SPICE:NMOS") (at 143.51 104.14 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid 6161e0f3-0ec3-4c0b-95c0-48aad451f60b)
-    (property "Reference" "Q4" (at 149.86 102.87 0)
+    (property "Reference" "Q1" (at 149.86 102.87 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Value" "BSS806NEH6327XTSA1" (at 149.86 105.41 0)
@@ -1148,7 +1148,7 @@
     (instances
       (project "BLE_REMOTE"
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/01d40fd6-ccdc-442b-bfe3-30d4d8ca438d"
-          (reference "Q4") (unit 1)
+          (reference "Q1") (unit 1)
         )
       )
     )
@@ -1157,7 +1157,7 @@
   (symbol (lib_id "Device:R") (at 171.45 97.79 180) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid 687830b2-d9aa-438b-a2fa-7afbbc136973)
-    (property "Reference" "R24" (at 173.99 97.155 0)
+    (property "Reference" "R19" (at 173.99 97.155 0)
       (effects (font (size 1.27 1.27)) (justify right))
     )
     (property "Value" "47k" (at 173.99 99.695 0)
@@ -1177,7 +1177,7 @@
     (instances
       (project "BLE_REMOTE"
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/01d40fd6-ccdc-442b-bfe3-30d4d8ca438d"
-          (reference "R24") (unit 1)
+          (reference "R19") (unit 1)
         )
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/3c7d46da-db2c-458d-86d8-33d657630bb5"
           (reference "R17") (unit 1)
@@ -1189,7 +1189,7 @@
   (symbol (lib_id "Device:R") (at 71.12 59.69 270) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 6c78579b-fd64-4f52-ac65-dc64fd8338c2)
-    (property "Reference" "R20" (at 71.12 62.23 90)
+    (property "Reference" "R14" (at 71.12 62.23 90)
       (effects (font (size 1.27 1.27)))
     )
     (property "Value" "2k" (at 71.12 59.69 90)
@@ -1212,7 +1212,7 @@
     (instances
       (project "BLE_REMOTE"
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/01d40fd6-ccdc-442b-bfe3-30d4d8ca438d"
-          (reference "R20") (unit 1)
+          (reference "R14") (unit 1)
         )
       )
     )
@@ -1247,7 +1247,7 @@
           (reference "J5") (unit 1)
         )
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/01d40fd6-ccdc-442b-bfe3-30d4d8ca438d"
-          (reference "J5") (unit 1)
+          (reference "J4") (unit 1)
         )
       )
     )
@@ -1256,7 +1256,7 @@
   (symbol (lib_id "Device:R") (at 148.59 40.64 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid 6ff618c0-01c7-4352-9037-b7f25d129008)
-    (property "Reference" "R22" (at 151.13 39.37 0)
+    (property "Reference" "R17" (at 151.13 39.37 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Value" "1k" (at 151.13 41.91 0)
@@ -1279,7 +1279,7 @@
     (instances
       (project "BLE_REMOTE"
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/01d40fd6-ccdc-442b-bfe3-30d4d8ca438d"
-          (reference "R22") (unit 1)
+          (reference "R17") (unit 1)
         )
       )
     )
@@ -1288,7 +1288,7 @@
   (symbol (lib_id "power:GND") (at 71.12 124.46 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid 79a34748-8748-4f88-b3bb-25cc46c81ec6)
-    (property "Reference" "#PWR030" (at 71.12 130.81 0)
+    (property "Reference" "#PWR025" (at 71.12 130.81 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 71.12 129.54 0)
@@ -1304,7 +1304,7 @@
     (instances
       (project "BLE_REMOTE"
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/01d40fd6-ccdc-442b-bfe3-30d4d8ca438d"
-          (reference "#PWR030") (unit 1)
+          (reference "#PWR025") (unit 1)
         )
       )
     )
@@ -1313,7 +1313,7 @@
   (symbol (lib_id "Device:R") (at 161.29 97.79 180) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid 7b585038-23ce-4743-a248-226969e89de4)
-    (property "Reference" "R23" (at 163.83 97.155 0)
+    (property "Reference" "R18" (at 163.83 97.155 0)
       (effects (font (size 1.27 1.27)) (justify right))
     )
     (property "Value" "47k" (at 163.83 99.695 0)
@@ -1333,7 +1333,7 @@
     (instances
       (project "BLE_REMOTE"
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/01d40fd6-ccdc-442b-bfe3-30d4d8ca438d"
-          (reference "R23") (unit 1)
+          (reference "R18") (unit 1)
         )
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/3c7d46da-db2c-458d-86d8-33d657630bb5"
           (reference "R17") (unit 1)
@@ -1345,7 +1345,7 @@
   (symbol (lib_id "Device:R") (at 71.12 45.72 270) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 8b4da43b-1ced-41aa-b683-00bf16f1ce8f)
-    (property "Reference" "R19" (at 71.12 48.26 90)
+    (property "Reference" "R13" (at 71.12 48.26 90)
       (effects (font (size 1.27 1.27)))
     )
     (property "Value" "2k" (at 71.12 45.72 90)
@@ -1368,7 +1368,7 @@
     (instances
       (project "BLE_REMOTE"
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/01d40fd6-ccdc-442b-bfe3-30d4d8ca438d"
-          (reference "R19") (unit 1)
+          (reference "R13") (unit 1)
         )
       )
     )
@@ -1377,7 +1377,7 @@
   (symbol (lib_id "power:GND") (at 129.54 115.57 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid 9c11b615-6b35-4aa4-8efe-0bc4520241fe)
-    (property "Reference" "#PWR022" (at 129.54 121.92 0)
+    (property "Reference" "#PWR028" (at 129.54 121.92 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 129.54 120.65 0)
@@ -1393,7 +1393,7 @@
     (instances
       (project "BLE_REMOTE"
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/01d40fd6-ccdc-442b-bfe3-30d4d8ca438d"
-          (reference "#PWR022") (unit 1)
+          (reference "#PWR028") (unit 1)
         )
       )
     )
@@ -1402,7 +1402,7 @@
   (symbol (lib_id "power:VCC") (at 148.59 33.02 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid 9f37d782-c49d-4971-b9e7-28916b94db08)
-    (property "Reference" "#PWR033" (at 148.59 36.83 0)
+    (property "Reference" "#PWR030" (at 148.59 36.83 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "VCC" (at 148.59 27.94 0)
@@ -1418,7 +1418,7 @@
     (instances
       (project "BLE_REMOTE"
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/01d40fd6-ccdc-442b-bfe3-30d4d8ca438d"
-          (reference "#PWR033") (unit 1)
+          (reference "#PWR030") (unit 1)
         )
       )
     )
@@ -1427,7 +1427,7 @@
   (symbol (lib_id "power:GND") (at 148.59 55.88 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid a4384232-bdb2-4f8c-9bd4-1c52e4759e78)
-    (property "Reference" "#PWR034" (at 148.59 62.23 0)
+    (property "Reference" "#PWR031" (at 148.59 62.23 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 148.59 60.96 0)
@@ -1443,7 +1443,7 @@
     (instances
       (project "BLE_REMOTE"
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/01d40fd6-ccdc-442b-bfe3-30d4d8ca438d"
-          (reference "#PWR034") (unit 1)
+          (reference "#PWR031") (unit 1)
         )
       )
     )
@@ -1474,7 +1474,7 @@
           (reference "#PWR038") (unit 1)
         )
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/01d40fd6-ccdc-442b-bfe3-30d4d8ca438d"
-          (reference "#PWR037") (unit 1)
+          (reference "#PWR033") (unit 1)
         )
       )
     )
@@ -1483,7 +1483,7 @@
   (symbol (lib_id "Device:LED") (at 63.5 45.72 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid aea50892-7fa8-4ed1-bb2b-8c226ee6746c)
-    (property "Reference" "D4" (at 61.9125 40.64 0)
+    (property "Reference" "D3" (at 61.9125 40.64 0)
       (effects (font (size 1.27 1.27)))
     )
     (property "Value" "LED" (at 61.9125 43.18 0)
@@ -1506,7 +1506,7 @@
     (instances
       (project "BLE_REMOTE"
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/01d40fd6-ccdc-442b-bfe3-30d4d8ca438d"
-          (reference "D4") (unit 1)
+          (reference "D3") (unit 1)
         )
       )
     )
@@ -1541,7 +1541,7 @@
           (reference "J5") (unit 1)
         )
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/01d40fd6-ccdc-442b-bfe3-30d4d8ca438d"
-          (reference "J6") (unit 1)
+          (reference "J5") (unit 1)
         )
       )
     )
@@ -1550,7 +1550,7 @@
   (symbol (lib_id "Connector_Generic:Conn_01x04") (at 170.18 111.76 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid afb3d795-87ab-46b6-aa7e-92d1a005513a)
-    (property "Reference" "J9" (at 172.72 111.76 0)
+    (property "Reference" "J8" (at 172.72 111.76 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Value" "Display" (at 172.72 114.3 0)
@@ -1575,7 +1575,7 @@
     (instances
       (project "BLE_REMOTE"
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/01d40fd6-ccdc-442b-bfe3-30d4d8ca438d"
-          (reference "J9") (unit 1)
+          (reference "J8") (unit 1)
         )
       )
     )
@@ -1584,7 +1584,7 @@
   (symbol (lib_id "power:GND") (at 165.1 118.11 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid b2e7b1a0-1ce6-49f4-8c24-55bb7096bdf6)
-    (property "Reference" "#PWR036" (at 165.1 124.46 0)
+    (property "Reference" "#PWR032" (at 165.1 124.46 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 165.1 123.19 0)
@@ -1600,7 +1600,7 @@
     (instances
       (project "BLE_REMOTE"
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/01d40fd6-ccdc-442b-bfe3-30d4d8ca438d"
-          (reference "#PWR036") (unit 1)
+          (reference "#PWR032") (unit 1)
         )
       )
     )
@@ -1635,7 +1635,7 @@
           (reference "J5") (unit 1)
         )
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/01d40fd6-ccdc-442b-bfe3-30d4d8ca438d"
-          (reference "J7") (unit 1)
+          (reference "J6") (unit 1)
         )
       )
     )
@@ -1644,7 +1644,7 @@
   (symbol (lib_id "Device:R") (at 129.54 107.95 180) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid c77b29ac-8689-4487-a052-45fe6f8fd0a7)
-    (property "Reference" "R16" (at 132.08 107.315 0)
+    (property "Reference" "R15" (at 132.08 107.315 0)
       (effects (font (size 1.27 1.27)) (justify right))
     )
     (property "Value" "47k" (at 132.08 109.855 0)
@@ -1664,7 +1664,7 @@
     (instances
       (project "BLE_REMOTE"
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/01d40fd6-ccdc-442b-bfe3-30d4d8ca438d"
-          (reference "R16") (unit 1)
+          (reference "R15") (unit 1)
         )
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/3c7d46da-db2c-458d-86d8-33d657630bb5"
           (reference "R17") (unit 1)
@@ -1676,7 +1676,7 @@
   (symbol (lib_id "power:GND") (at 71.12 107.95 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid cc786e46-cd01-4be0-9e2d-01e5b9fc90e0)
-    (property "Reference" "#PWR029" (at 71.12 114.3 0)
+    (property "Reference" "#PWR024" (at 71.12 114.3 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 71.12 113.03 0)
@@ -1692,7 +1692,7 @@
     (instances
       (project "BLE_REMOTE"
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/01d40fd6-ccdc-442b-bfe3-30d4d8ca438d"
-          (reference "#PWR029") (unit 1)
+          (reference "#PWR024") (unit 1)
         )
       )
     )
@@ -1701,7 +1701,7 @@
   (symbol (lib_id "power:VCC") (at 146.05 93.98 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid d0b41d52-92b2-4eec-95b3-e2bd98533570)
-    (property "Reference" "#PWR035" (at 146.05 97.79 0)
+    (property "Reference" "#PWR029" (at 146.05 97.79 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "VCC" (at 146.05 88.9 0)
@@ -1717,7 +1717,7 @@
     (instances
       (project "BLE_REMOTE"
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/01d40fd6-ccdc-442b-bfe3-30d4d8ca438d"
-          (reference "#PWR035") (unit 1)
+          (reference "#PWR029") (unit 1)
         )
       )
     )
@@ -1745,7 +1745,7 @@
           (reference "#PWR036") (unit 1)
         )
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/01d40fd6-ccdc-442b-bfe3-30d4d8ca438d"
-          (reference "#PWR032") (unit 1)
+          (reference "#PWR027") (unit 1)
         )
       )
     )
