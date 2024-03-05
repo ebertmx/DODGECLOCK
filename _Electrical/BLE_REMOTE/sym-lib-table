@@ -14,4 +14,6 @@
   (lib (name "1N4148")(type "KiCad")(uri "${KIPRJMOD}/_Parts/1N4148.kicad_sym")(options "")(descr "")(disabled)(hidden))
   (lib (name "BSS806")(type "KiCad")(uri "${KIPRJMOD}/_Parts/BSS806.kicad_sym")(options "")(descr ""))
   (lib (name "IRF7319T")(type "KiCad")(uri "${KIPRJMOD}/_Parts/IRF7319T.kicad_sym")(options "")(descr ""))
+  (lib (name "D2FS")(type "KiCad")(uri "${KIPRJMOD}/_Parts/D2FS.kicad_sym")(options "")(descr ""))
+  (lib (name "316040005")(type "KiCad")(uri "${KIPRJMOD}/_Parts/316040005.kicad_sym")(options "")(descr ""))
 )

@@ -1720,8 +1720,8 @@
     (property "Part" "RC0402FR-071KL" (at 97.79 151.13 90)
       (effects (font (size 1.27 1.27)) hide)
     )
-    (pin "2" (uuid f4463446-a4f8-4863-b751-69790e075240))
     (pin "1" (uuid e5833bdd-156a-4d0b-ae98-4205a8858bd5))
+    (pin "2" (uuid f4463446-a4f8-4863-b751-69790e075240))
     (instances
       (project "BLE_REMOTE"
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/df7514b4-387c-47b1-a1bd-e93660408c5b"
@@ -1762,8 +1762,8 @@
     (property "Part" "RC0402FR-07100KL" (at 81.28 143.51 90)
       (effects (font (size 1.27 1.27)) hide)
     )
-    (pin "2" (uuid 68d6e754-1eeb-4dc9-b45c-31de24336fa7))
     (pin "1" (uuid 69218457-0625-4154-ad34-5e42bf9a41f3))
+    (pin "2" (uuid 68d6e754-1eeb-4dc9-b45c-31de24336fa7))
     (instances
       (project "BLE_REMOTE"
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/df7514b4-387c-47b1-a1bd-e93660408c5b"
@@ -1804,8 +1804,8 @@
     (property "Part" "RC0402FR-07100KL" (at 80.01 99.06 90)
       (effects (font (size 1.27 1.27)) hide)
     )
-    (pin "2" (uuid 2d607f3c-2256-41e3-86c8-70ae7e0143e2))
     (pin "1" (uuid 49ee69ba-d835-4f60-af4e-913e8ae56ac5))
+    (pin "2" (uuid 2d607f3c-2256-41e3-86c8-70ae7e0143e2))
     (instances
       (project "BLE_REMOTE"
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/df7514b4-387c-47b1-a1bd-e93660408c5b"
@@ -1928,8 +1928,8 @@
     (property "Part" "DMP2160UW-7" (at 49.53 158.75 0)
       (effects (font (size 1.27 1.27)) hide)
     )
-    (pin "2" (uuid bb51d560-2f2c-47f0-9053-763569708aca))
     (pin "1" (uuid 57933f0b-ec27-4f72-8373-09e2e16159a5))
+    (pin "2" (uuid bb51d560-2f2c-47f0-9053-763569708aca))
     (pin "3" (uuid ee5e6480-5d87-408e-81fd-01bee34ed4d7))
     (instances
       (project "BLE_REMOTE"
@@ -1970,12 +1970,12 @@
     (property "Sim.Pins" "1=1 2=2 3=3 4=4 5=5 6=6" (at 82.55 158.75 0)
       (effects (font (size 1.27 1.27)) hide)
     )
-    (pin "6" (uuid c4bda133-27b1-4082-9d27-8bcc03b30fd4))
     (pin "1" (uuid b7d37cc5-f20e-458e-9274-93826f4f99c8))
     (pin "2" (uuid c7a59ca7-4a22-4210-a095-09758eb4cda6))
     (pin "3" (uuid acef3f46-77e4-4010-af33-d69650b7b083))
     (pin "4" (uuid a6bc407d-094d-4373-b78a-958002dde785))
     (pin "5" (uuid 124b9a9a-af95-4769-8e0f-b5449fc309c5))
+    (pin "6" (uuid c4bda133-27b1-4082-9d27-8bcc03b30fd4))
     (instances
       (project "BLE_REMOTE"
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/df7514b4-387c-47b1-a1bd-e93660408c5b"
@@ -2129,8 +2129,8 @@
     (property "Part" "" (at 91.44 114.3 90)
       (effects (font (size 1.27 1.27)) hide)
     )
-    (pin "2" (uuid 4690f63b-2414-42da-a2a9-a87c0e988f2c))
     (pin "1" (uuid 100b8a85-765c-4519-9617-6536f16a2b31))
+    (pin "2" (uuid 4690f63b-2414-42da-a2a9-a87c0e988f2c))
     (instances
       (project "BLE_REMOTE"
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/df7514b4-387c-47b1-a1bd-e93660408c5b"
@@ -2171,8 +2171,8 @@
     (property "Part" "RC0402FR-0716KL" (at 106.68 146.05 90)
       (effects (font (size 1.27 1.27)) hide)
     )
-    (pin "2" (uuid 36d043e5-997f-46e6-b8d6-cf6c3e1ed691))
     (pin "1" (uuid c432c629-8888-4345-a7d9-35774897e14a))
+    (pin "2" (uuid 36d043e5-997f-46e6-b8d6-cf6c3e1ed691))
     (instances
       (project "BLE_REMOTE"
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/df7514b4-387c-47b1-a1bd-e93660408c5b"
@@ -2213,8 +2213,8 @@
     (property "Part" "RC0402FR-07100KL" (at 193.04 85.09 90)
       (effects (font (size 1.27 1.27)) hide)
     )
-    (pin "2" (uuid 4e8f1a1b-99e8-4277-81bb-59092813e29d))
     (pin "1" (uuid 16560760-dc85-4336-b299-26c8bca5b31e))
+    (pin "2" (uuid 4e8f1a1b-99e8-4277-81bb-59092813e29d))
     (instances
       (project "BLE_REMOTE"
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/df7514b4-387c-47b1-a1bd-e93660408c5b"
@@ -2285,8 +2285,8 @@
     (property "Datasheet" "~" (at 214.63 71.12 0)
       (effects (font (size 1.27 1.27)) hide)
     )
-    (pin "2" (uuid 67444c5a-9544-4383-b014-7423b5dbd76e))
     (pin "1" (uuid 75dd5800-5164-4785-9603-5799937e2cd9))
+    (pin "2" (uuid 67444c5a-9544-4383-b014-7423b5dbd76e))
     (instances
       (project "BLE_REMOTE"
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/df7514b4-387c-47b1-a1bd-e93660408c5b"
@@ -2412,14 +2412,14 @@
     (property "Datasheet" "IRF7319TRPBF" (at 158.75 105.41 0)
       (effects (font (size 1.27 1.27) italic) hide)
     )
-    (pin "2" (uuid 7cc5be18-f3dd-4d6e-ba27-2dda712df24d))
-    (pin "7" (uuid c130f9cc-bd80-451a-aaa8-b8791be60255))
-    (pin "3" (uuid c48ebd92-958f-48c1-a9f1-4a452a8d8500))
-    (pin "6" (uuid 3bed4af9-94d1-497f-9ea9-923bef346a3d))
     (pin "1" (uuid b5cab8e2-e32d-4ec9-af2d-cf3bb1374d0b))
-    (pin "5" (uuid e27b5cb6-72c3-49c3-9020-c95bd92b0571))
-    (pin "8" (uuid 2db62f74-6f3c-449d-99b2-bcb8e9fb7859))
+    (pin "2" (uuid 7cc5be18-f3dd-4d6e-ba27-2dda712df24d))
+    (pin "3" (uuid c48ebd92-958f-48c1-a9f1-4a452a8d8500))
     (pin "4" (uuid 699c0dd8-ae1c-4779-b907-f989ca700b4a))
+    (pin "5" (uuid e27b5cb6-72c3-49c3-9020-c95bd92b0571))
+    (pin "6" (uuid 3bed4af9-94d1-497f-9ea9-923bef346a3d))
+    (pin "7" (uuid c130f9cc-bd80-451a-aaa8-b8791be60255))
+    (pin "8" (uuid 2db62f74-6f3c-449d-99b2-bcb8e9fb7859))
     (instances
       (project "BLE_REMOTE"
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/df7514b4-387c-47b1-a1bd-e93660408c5b/a095a39f-6b3f-4eb2-81ef-a7fa39c10239"
@@ -2452,8 +2452,8 @@
     (property "Part" "CL05A106MP5NUNC" (at 102.87 101.6 0)
       (effects (font (size 1.27 1.27)) hide)
     )
-    (pin "2" (uuid b5583089-a4d7-4f80-bf5e-c66ce15084d5))
     (pin "1" (uuid 225ffdd6-903e-454b-bc96-52480f4dd938))
+    (pin "2" (uuid b5583089-a4d7-4f80-bf5e-c66ce15084d5))
     (instances
       (project "BLE_REMOTE"
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/df7514b4-387c-47b1-a1bd-e93660408c5b"
@@ -2527,8 +2527,8 @@
     (property "Part" "RC0402FR-079K1L" (at 106.68 156.21 90)
       (effects (font (size 1.27 1.27)) hide)
     )
-    (pin "2" (uuid e734bb71-a19f-4aae-8c02-cb954b48114a))
     (pin "1" (uuid 4c04a7fe-764f-4fbf-9d49-8fc71e2c7844))
+    (pin "2" (uuid e734bb71-a19f-4aae-8c02-cb954b48114a))
     (instances
       (project "BLE_REMOTE"
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/df7514b4-387c-47b1-a1bd-e93660408c5b"

@@ -1,0 +1,9 @@
+EESchema-DOCLIB  Version 2.0
+#
+$CMP 316040005
+D Brushless DC Motors Cylindrical 1.3V 9000r/min 1Shaft
+K
+F https://media.digikey.com/pdf/Data%20Sheets/Seeed%20Technology/316040005_DS.pdf
+$ENDCMP
+#
+#End Doc Library

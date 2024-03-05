@@ -514,6 +514,7 @@
       "/MCU/ANT": "HF",
       "/MCU/SWDCLK": "Signal",
       "/MCU/SWDIO": "Signal",
+      "/Power/BQ_CE_N": "Signal",
       "/Power/BQ_EN1": "Signal",
       "/Power/BQ_EN2": "Signal",
       "/Power/BQ_ILIM": "Signal",

@@ -631,6 +631,7 @@
     )
   )
 
+
   (junction (at 45.72 64.77) (diameter 0) (color 0 0 0 0)
     (uuid 091a19ef-96f8-4ba6-9ae1-f257c280974d)
   )
@@ -1030,7 +1031,7 @@
     (effects (font (size 1.27 1.27)) (justify left bottom))
     (uuid 62dc56de-ee1e-4669-bfc0-b3636227c61f)
   )
-  (label "BQ_ITERM" (at 54.61 100.33 0) (fields_autoplaced)
+  (label "BQ_CE_N" (at 54.61 100.33 0) (fields_autoplaced)
     (effects (font (size 1.27 1.27)) (justify left bottom))
     (uuid 6a3d5594-afc4-4bc4-81b3-7961ba635381)
   )
@@ -1038,7 +1039,7 @@
     (effects (font (size 1.27 1.27)) (justify left bottom))
     (uuid 94dc883f-b888-4607-92d4-8e996a9a3778)
   )
-  (label "BQ_EN1" (at 49.53 95.25 0) (fields_autoplaced)
+  (label "BQ_ITERM" (at 49.53 95.25 0) (fields_autoplaced)
     (effects (font (size 1.27 1.27)) (justify left bottom))
     (uuid 95be0a88-54fd-4629-b198-1dc6ebf58141)
   )
@@ -1467,12 +1468,12 @@
     (property "Part" "MIC5528-3.3YMX-TR" (at 222.25 67.31 0)
       (effects (font (size 1.27 1.27)) hide)
     )
-    (pin "5" (uuid 74d9f1aa-5559-4b68-a6e3-b9e88bf348fb))
-    (pin "4" (uuid cdde2e60-a701-441c-a83d-d40d3992366a))
     (pin "3" (uuid 74170ee2-092a-4e70-bce0-34f7f5b7c561))
+    (pin "4" (uuid cdde2e60-a701-441c-a83d-d40d3992366a))
+    (pin "5" (uuid 74d9f1aa-5559-4b68-a6e3-b9e88bf348fb))
+    (pin "6" (uuid eba15d2f-8433-4d05-88e7-ed8951df0b73))
     (pin "1" (uuid b6242dd3-6ab1-40b2-9797-82a00e8fa2b7))
     (pin "2" (uuid 6042ddfc-effb-4857-9245-7beff4b13e2d))
-    (pin "6" (uuid eba15d2f-8433-4d05-88e7-ed8951df0b73))
     (pin "7" (uuid 9ac30544-cbf9-4d2f-ab30-cff6420475ff))
     (instances
       (project "BLE_REMOTE"
