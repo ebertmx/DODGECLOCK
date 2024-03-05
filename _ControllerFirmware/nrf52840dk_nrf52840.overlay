@@ -53,6 +53,9 @@
 };
 
 
+&gpio0 {
+	wakeup-source;
+};
 
 &pwm0 {
 	status = "disabled";

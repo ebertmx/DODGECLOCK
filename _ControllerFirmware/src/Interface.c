@@ -101,7 +101,7 @@ static struct button_t pair_btn =
 		.evt = 0,
 		.gpio_spec = GPIO_DT_SPEC_GET(SW0_NODE, gpios),
 		.gpio_cb_handler = button_event_cb,
-		.gpio_flags = GPIO_INT_EDGE_BOTH,
+		.gpio_flags = GPIO_ACTIVE_LOW,
 
 		.btn_work_handler = handle_button_event,
 };
@@ -261,6 +261,13 @@ static uint32_t dis_clock = 0;
 static uint8_t dis_state = 2;
 static char dis_conn_status = 0;
 
+int interface_off(void)
+{
+
+	int err = cfb_print(display, "OFF", 0, 0);
+}
+
+
 int interface_update(uint32_t *clock, uint8_t *state, char *conn_status)
 {
 	
@@ -280,6 +287,9 @@ int interface_update(uint32_t *clock, uint8_t *state, char *conn_status)
 		{
 			sprintf(str, "T:%d S%d %c", dis_clock, dis_state, dis_conn_status);
 		}
+
+
+		
 
 		int err = cfb_print(display, str, 0, 0);
 		if (err)

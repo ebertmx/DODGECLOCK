@@ -45,19 +45,29 @@
 	};
 };
 
+// &gpio0 {
+// 	wakeup-source;
+// };
+&uart0 {
+	status = "disabled";
+};
 
 
 
 /{
 	buttons {
 		compatible = "gpio-keys";
+		button0: button_0 {
+			gpios = <&gpio0 9 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+			label = "Push button switch 1";
+		};
 
 		button1: button_1 {
 			gpios = <&gpio0 22 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
 			label = "Push button switch 1";
 		};
 		button2: button_2 {
-			gpios = <&gpio0 10 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+			gpios = <&gpio1 10 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
 			label = "Push button switch 2";
 		};
 		button3: button_3 {
@@ -75,9 +85,9 @@
 
 &sw_pwm {
 	status = "okay";
-	channel-gpios = <&gpio1 10 PWM_POLARITY_INVERTED>;
+	channel-gpios = <&gpio1 13 PWM_POLARITY_NORMAL>;
 };
 
 &red_pwm_led {
-	pwms = <&sw_pwm 0 PWM_MSEC(20) PWM_POLARITY_INVERTED>;
+	pwms = <&sw_pwm 0 PWM_MSEC(20) PWM_POLARITY_NORMAL>;
 };

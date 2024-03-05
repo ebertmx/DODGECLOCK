@@ -18,17 +18,28 @@
 
 #include <zephyr/settings/settings.h>
 
+#include <zephyr/sys/poweroff.h>
+#include <zephyr/sys/util.h>
+
 #include "DCLK.h"
 #include "Interface.h"
+
+#include <soc.h>
+#include <hal/nrf_gpio.h>
 
 LOG_MODULE_REGISTER(Controller_app, LOG_LEVEL_INF);
 
 #define STACKSIZE 512
 #define PRIORITY 7
 
+#define GO_SLEEP_SHORT 10000
+#define GO_SLEEP_LONG 30000
 #define CLOCK_RESET_VALUE 10000
 
 #define SYNC_INTERVAL 500
+
+static void poweroff(void);
+K_TIMER_DEFINE(sleep_timer, poweroff, NULL);
 /*
 
 
@@ -80,6 +91,7 @@ static uint8_t pair_cb(uint8_t evt)
 		LOG_INF("stop pairing : %d", evt);
 		dclk_pairing(false);
 	}
+	k_timer_stop(&sleep_timer);
 
 	return 0;
 }
@@ -100,6 +112,8 @@ static uint8_t start_cb(uint8_t evt)
 		k_timer_start(&d_timer, K_MSEC(CLOCK_RESET_VALUE), K_NO_WAIT);
 	}
 
+	k_timer_stop(&sleep_timer);
+
 	return 0;
 }
 
@@ -112,6 +126,7 @@ static uint8_t stop_cb(uint8_t evt)
 		k_timer_stop(&d_timer);
 		clock_state = 1;
 	}
+
 	return 0;
 }
 
@@ -126,7 +141,8 @@ static struct interface_cb interface_callbacks =
 static void d_clock_expire(struct k_timer *timer_id)
 {
 	clock_state = 2;
-	// k_timer_start(&d_timer, K_MSEC(CLOCK_RESET_VALUE), K_NO_WAIT);
+	k_timer_start(&sleep_timer, K_MSEC(GO_SLEEP_SHORT), K_NO_WAIT);
+
 }
 
 /** @brief Runs the shot clock, notifies DCLK, and updates display */
@@ -174,6 +190,13 @@ void dclk_app(void)
 	return;
 }
 
+void power_manage_init(void)
+{
+	nrf_gpio_cfg_input(NRF_DT_GPIOS_TO_PSEL(DT_NODELABEL(button2), gpios),
+					   NRF_GPIO_PIN_PULLUP);
+	nrf_gpio_cfg_sense_set(NRF_DT_GPIOS_TO_PSEL(DT_NODELABEL(button2), gpios),
+						   NRF_GPIO_PIN_SENSE_LOW);
+}
 int main(void)
 {
 	int err;
@@ -196,6 +219,9 @@ int main(void)
 
 	LOG_INF("Initialized \n");
 
+	power_manage_init();
+	k_timer_start(&sleep_timer,K_MSEC(GO_SLEEP_LONG),K_NO_WAIT);
+
 	while (1)
 	{
 		k_sleep(K_FOREVER);
@@ -206,4 +232,12 @@ int main(void)
 // Start app thread
 K_THREAD_DEFINE(app, 1024, dclk_app, NULL, NULL, NULL, 5, 0, 0);
 
-// K_THREAD_DEFINE(dclock_update, STACKSIZE, update_dclock, NULL, NULL, NULL, PRIORITY, 0, 0);
+void poweroff(void)
+{
+	LOG_INF("SLEEP TIMER EXPIRED");
+	// k_thread_suspend(&app);
+	LOG_INF("POWER OFF");
+	interface_off();
+
+	sys_poweroff();
+}

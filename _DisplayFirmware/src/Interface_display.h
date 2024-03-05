@@ -45,30 +45,18 @@ struct interface_cb {
  */
 int interface_init(struct interface_cb *app_cb);
 
-
-/** @brief Send the button state as notification.
+/** @brief Initialize the LBS Service.
  *
- * This function sends a binary state, typically the state of a
- * button, to all connected peers.
+ * This function registers application callback functions with the My LBS
+ * Service
  *
- * @param[in] state The state of the button.
+ * @param[in] clock value to display on clock
  *
- * @retval 0 If the operation was successful.
- *           Otherwise, a (negative) error code is returned.
- */
-uint32_t get_dclock (void);
-
-/** @brief Send the sensor value as notification.
- *
- * This function sends an uint32_t  value, typically the value
- * of a simulated sensor to all connected peers.
- *
- * @param[in] clock The value of the simulated sensor.
  *
  * @retval 0 If the operation was successful.
  *           Otherwise, a (negative) error code is returned.
  */
-uint8_t get_dstate (void);
+int interface_write_display(uint32_t clock);
 
 
 
