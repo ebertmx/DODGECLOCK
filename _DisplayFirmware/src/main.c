@@ -12,7 +12,7 @@
 #include <zephyr/logging/log.h>
 #include "DCLK_client.h"
 
-#include "Interface.h"
+#include "Interface_display.h"
 
 LOG_MODULE_REGISTER(Display_app, CONFIG_LOG_DEFAULT_LEVEL);
 

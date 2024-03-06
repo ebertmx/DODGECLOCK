@@ -41,11 +41,39 @@ extern "C"
 #define BT_UUID_DCLK_LED BT_UUID_DECLARE_128(BT_UUID_DCLK_LED_VAL)
 #define BT_UUID_DCLK_CLOCK BT_UUID_DECLARE_128(BT_UUID_DCLK_CLOCK_VAL)
 
+
+/** @brief Struct defining DCLK state */
+	typedef struct dclk_info
+	{
+		/** number of active BLE connection */
+		uint8_t num_conn;
+		/** pairing status */
+		bool pair_en;
+
+	}dclk_info;
+
+
+	
+	/** @brief get status of DCLK service
+	 *
+	 * This function registers application callback functions with the DCLK
+	 * Service
+	 *
+	 * @param[in] dclk_info a struct point to pass back values
+	 *
+	 *
+	 * @retval 0If the operation was successful.
+	 *           Otherwise, a (negative) error code is returned.
+	 */
+	int dclk_get_status(struct dclk_info *status);
+
 	/** @brief Callback type for when an clock is read. */
 	typedef uint32_t (*clock_cb_t)(void);
 
 	/** @brief Callback type for when state is read. */
 	typedef uint8_t (*state_cb_t)(void);
+
+
 
 	/** @brief Callback struct used by DCLK Service. */
 	struct dclk_cb
@@ -54,6 +82,8 @@ extern "C"
 		clock_cb_t clock_cb;
 		/** state read callback. */
 		state_cb_t state_cb;
+
+
 	};
 
 	/** @brief Initialize the DCLK Service.
@@ -77,12 +107,12 @@ extern "C"
 	 * This starts or stops advertizing immediately and
 	 * sets the pairing state to enable
 	 *
-	 * @param[in] void 
+	 * @param[in] enable pairing or not
 	 *
 	 * @retval 0 If the operation was successful.
 	 *           Otherwise, a (negative) error code is returned.
 	 */
-	int dclk_pairing(void);
+	int dclk_pairing(bool enable);
 
 	/** @brief Send the clock state as notification.
 	 *

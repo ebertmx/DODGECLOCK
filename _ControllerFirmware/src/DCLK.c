@@ -13,10 +13,10 @@
 #include <errno.h>
 
 #include <zephyr/sys/byteorder.h>
-//#include <zephyr/kernel.h>
+// #include <zephyr/kernel.h>
 
 #include <zephyr/bluetooth/bluetooth.h>
-//#include <zephyr/bluetooth/hci.h>
+// #include <zephyr/bluetooth/hci.h>
 #include <zephyr/bluetooth/conn.h>
 #include <zephyr/bluetooth/uuid.h>
 #include <zephyr/bluetooth/gatt.h>
@@ -29,7 +29,7 @@
 #ifdef DLCK_LOG
 #include <zephyr/sys/printk.h>
 #include <zephyr/logging/log.h>
-LOG_MODULE_DECLARE(Controller_app, LOG_LEVEL_ERR);
+LOG_MODULE_DECLARE(Controller_app, LOG_LEVEL_INF);
 #endif
 
 static bool notify_state_enabled;
@@ -37,6 +37,12 @@ static bool notify_clock_enabled;
 static uint8_t state;
 static uint32_t clock;
 static struct dclk_cb dclk_cb;
+
+static dclk_info dclk_status =
+	{
+		.num_conn = 0,
+		.pair_en = false,
+};
 
 static unsigned int passkey;
 
@@ -85,6 +91,7 @@ static void setup_accept_list_cb(const struct bt_bond_info *info, void *user_dat
 	}
 }
 
+// ADVERTISING
 static int setup_accept_list(uint8_t local_id)
 {
 	int err = bt_le_filter_accept_list_clear();
@@ -135,6 +142,8 @@ void pair_DCLK(struct k_work *work)
 void advertise_DCLK(struct k_work *work)
 {
 	int err = 0;
+	bt_le_adv_stop();
+
 	int allowed_cnt = setup_accept_list(BT_ID_DEFAULT);
 	LOG_DBG("bond_count = %d", allowed_cnt);
 	if (allowed_cnt < 0)
@@ -162,20 +171,8 @@ void advertise_DCLK(struct k_work *work)
 	return;
 }
 
-//K_WORK_DEFINE(advertise_DCLK_work, advertise_DCLK);
-// K_WORK_DEFINE(pair_DCLK_work, pair_DCLK);
-
-void start_advertising(void)
-{
-	// k_work_submit(&advertise_DCLK_work);
-	advertise_DCLK(NULL);
-}
-
-void start_pairing(void)
-{
-	pair_DCLK(NULL);
-	// k_work_submit(&pair_DCLK_work);
-}
+K_WORK_DEFINE(advertise_DCLK_work, advertise_DCLK);
+K_WORK_DEFINE(pair_DCLK_work, pair_DCLK);
 
 /*CONNECTION*/
 
@@ -184,21 +181,21 @@ static void on_connected(struct bt_conn *conn, uint8_t err)
 	if (err)
 	{
 		LOG_INF("Connection failed (err %u)\n", err);
-		start_advertising();
+		k_work_submit(&advertise_DCLK_work);
 		return;
 	}
 
 	LOG_INF("Connected\n");
-
+	dclk_status.num_conn++;
 	// bt_conn_set_security(conn, BT_SECURITY_L4);
 }
 
 static void on_disconnected(struct bt_conn *conn, uint8_t reason)
 {
 	LOG_INF("Disconnected (reason %u)\n", reason);
-
+	dclk_status.num_conn--;
 	// advertize to try and reconnect
-	start_advertising();
+	k_work_submit(&advertise_DCLK_work);
 }
 
 static void on_security_changed(struct bt_conn *conn, bt_security_t level, enum bt_security_err err)
@@ -429,15 +426,24 @@ int dclk_init(struct dclk_cb *callbacks)
 	// {
 	// 	err = -1;
 	// }
-	start_advertising();
-	
+	k_work_submit(&advertise_DCLK_work);
 
 	return 0;
 }
 
-int dclk_pairing(void)
+int dclk_pairing(bool enable)
 {
-	start_pairing();
+
+	dclk_status.pair_en = enable;
+	if (enable)
+	{
+		k_work_submit(&pair_DCLK_work);
+	}
+	else
+	{
+		k_work_submit(&advertise_DCLK_work);
+	}
+
 	return 0;
 }
 
@@ -447,8 +453,8 @@ int dclk_send_state_notify(uint8_t *state)
 	{
 		return -EACCES;
 	}
-
-	return bt_gatt_notify(NULL, &dclk_svc.attrs[2], state, sizeof(state));
+	
+	return bt_gatt_notify(NULL, &dclk_svc.attrs[2], state, sizeof(*state));
 }
 
 int dclk_send_clock_notify(uint32_t *clock)
@@ -457,5 +463,13 @@ int dclk_send_clock_notify(uint32_t *clock)
 	{
 		return -EACCES;
 	}
-	return bt_gatt_notify(NULL, &dclk_svc.attrs[5], clock, sizeof(clock));
+	//LOG_INF("clock_notify = %d  l=%d", *clock, sizeof(*clock));
+	return bt_gatt_notify(NULL, &dclk_svc.attrs[5], clock, sizeof(*clock));
+}
+
+int dclk_get_status(struct dclk_info *status)
+{
+	status->num_conn = dclk_status.num_conn;
+	status->pair_en = dclk_status.pair_en;
+	return 0;
 }

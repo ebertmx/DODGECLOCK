@@ -22,6 +22,9 @@
 #include <zephyr/logging/log.h>
 #include <zephyr/drivers/pwm.h>
 
+#include <stdio.h>
+#include <stdlib.h>
+
 LOG_MODULE_DECLARE(Controller_app, LOG_LEVEL_ERR);
 
 #define DISPLAY_BUFFER_PITCH 128
@@ -49,7 +52,15 @@ void handle_button_event(struct k_work *work)
 {
 	LOG_DBG("handle_button_event");
 	struct button_t *btn = CONTAINER_OF(work, struct button_t, btn_work);
-	btn->evt++;
+	if (0 == btn->val)
+	{
+		btn->evt = 0;
+	}
+	else
+	{
+		btn->evt = 1;
+	}
+
 	btn->active_func_cb(btn->evt);
 }
 
@@ -63,6 +74,8 @@ static void button_event_cb(const struct device *dev, struct gpio_callback *cb, 
 {
 	LOG_DBG("button_event_cb");
 	struct button_t *btn = CONTAINER_OF(cb, struct button_t, gpio_cb_data);
+	btn->val = gpio_pin_get(btn->gpio_spec.port, btn->gpio_spec.pin);
+	LOG_INF("Pin %d = %d", btn->gpio_spec.pin, btn->val);
 
 	k_work_submit(&btn->btn_work);
 }
@@ -88,7 +101,7 @@ static struct button_t pair_btn =
 		.evt = 0,
 		.gpio_spec = GPIO_DT_SPEC_GET(SW0_NODE, gpios),
 		.gpio_cb_handler = button_event_cb,
-		.gpio_flags = GPIO_INT_EDGE_BOTH,
+		.gpio_flags = GPIO_ACTIVE_LOW,
 
 		.btn_work_handler = handle_button_event,
 };
@@ -246,27 +259,37 @@ void buzz()
 
 static uint32_t dis_clock = 0;
 static uint8_t dis_state = 2;
-static char dis_num_conn = 0;
+static char dis_conn_status = 0;
 
-int interface_update(uint32_t *clock, uint8_t *state, char *num_conn)
+int interface_off(void)
 {
-	LOG_INF("Update Display");
+
+	int err = cfb_print(display, "OFF", 0, 0);
+}
+
+
+int interface_update(uint32_t *clock, uint8_t *state, char *conn_status)
+{
+	
 	int err = 0;
-	bool ref = (dis_clock == *clock) && (dis_state == *state) && (dis_num_conn == *num_conn);
+	bool ref = (dis_clock == *clock) && (dis_state == *state) && (dis_conn_status == *conn_status);
 	if (!ref)
 	{
 		dis_clock = *clock;
 		dis_state = *state;
-		dis_num_conn = *num_conn;
+		dis_conn_status = *conn_status;
 		char str[15];
 		if (10 == dis_clock)
 		{
-			sprintf(str, "T:- S%d %c", dis_state, dis_num_conn);
+			sprintf(str, "T:- S%d %c", dis_state, dis_conn_status);
 		}
 		else
 		{
-			sprintf(str, "T:%d S%d %c", dis_clock, dis_state, dis_num_conn);
+			sprintf(str, "T:%d S%d %c", dis_clock, dis_state, dis_conn_status);
 		}
+
+
+		
 
 		int err = cfb_print(display, str, 0, 0);
 		if (err)
@@ -288,7 +311,7 @@ int interface_update(uint32_t *clock, uint8_t *state, char *num_conn)
 	else
 	{
 		err = -1;
-		LOG_INF("Update not required");
+		//LOG_INF("Update not required");
 	}
 
 	return err;

@@ -82,7 +82,18 @@ extern "C"
 	 * @retval 0 If the operation was successful.
 	 *           Otherwise, a (negative) error code is returned.
 	 */
-	int interface_update(uint32_t *clock, uint8_t *state, char *num_conn);
+	int interface_update(uint32_t *clock, uint8_t *state, char *conn_status);
+
+/** @brief Turn off the display
+	 *
+	 *
+	 * @param[in] 
+	 *
+	 * @retval 0 If the operation was successful.
+	 *           Otherwise, a (negative) error code is returned.
+	 */
+
+	int interface_off(void);
 
 #ifdef __cplusplus
 }
