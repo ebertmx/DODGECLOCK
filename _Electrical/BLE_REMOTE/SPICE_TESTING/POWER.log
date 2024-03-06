@@ -1,11 +1,44 @@
 LTspice 24.0.9 for Windows
 Circuit: * C:\Users\ebert\Documents\DODGECLOCK_MK5\_Electrical\BLE_REMOTE\SPICE_TESTING\POWER.asc
-Start Time: Wed Feb 28 20:47:07 2024
+Start Time: Mon Mar  4 12:14:23 2024
 solver = Alternate
 Maximum thread count: 8
 tnom = 27
 temp = 27
 method = trap
-Direct Newton iteration for .op point succeeded.
-Total elapsed time: 0.078 seconds.
+WARNING: Node N005 is floating.
+WARNING: Node NC_02 is floating.
+
+WARNING: Less than two connections to node nc_01.  This node is used by v4.
+WARNING: Less than two connections to node nc_02.  This node is used by v4.
+Direct Newton iteration failed to find .op point.  (Use ".option noopiter" to skip.)
+Starting Gmin stepping
+Gmin = 10
+Gmin = 1.07374
+Gmin = 0.115292
+Gmin = 0.0123794
+Gmin = 0.00132923
+Gmin = 0.000142725
+Gmin = 1.5325e-05
+Gmin = 1.6455e-06
+Gmin = 1.76685e-07
+vernier = 0.5
+vernier = 0.25
+vernier = 0.333333
+Gmin = 1.33829e-07
+vernier = 0.444444
+Gmin = 5.29605e-08
+vernier = 0.592592
+vernier = 0.790123
+Gmin = 1.21157e-08
+vernier = 1
+Gmin = 1.47951e-09
+Gmin = 1.58861e-10
+Gmin = 1.70576e-11
+Gmin = 1.83154e-12
+Gmin = 1.9666e-13
+Gmin = 0
+Gmin stepping succeeded in finding the operating point.
+
+Total elapsed time: 0.397 seconds.
 

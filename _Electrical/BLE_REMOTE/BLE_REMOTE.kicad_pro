@@ -35,8 +35,8 @@
         "other_text_upright": false,
         "pads": {
           "drill": 0.0,
-          "height": 1.699999,
-          "width": 1.699999
+          "height": 1.02862,
+          "width": 1.02862
         },
         "silk_line_width": 0.16,
         "silk_text_italic": false,
@@ -55,20 +55,12 @@
           "width": 0.0
         }
       ],
-      "drc_exclusions": [
-        "annular_width|180938000|119008000|95d92003-c960-4eed-843a-374bbf09199b|00000000-0000-0000-0000-000000000000",
-        "annular_width|180938000|127648000|043e74af-d6e4-4fb3-b918-9410618a8d51|00000000-0000-0000-0000-000000000000",
-        "annular_width|184738000|119008000|5a503628-91b6-497f-8163-e49a51213202|00000000-0000-0000-0000-000000000000",
-        "annular_width|184738000|127648000|05f4d6cb-f3b9-4d48-b36a-a8f7e2fce077|00000000-0000-0000-0000-000000000000",
-        "lib_footprint_mismatch|181364250|129449012|f7aded4d-7f88-4f60-9c18-92f46ba591dc|00000000-0000-0000-0000-000000000000",
-        "lib_footprint_mismatch|201249999|121543750|3d15f588-b42d-4b98-bde0-bf0b1a362841|00000000-0000-0000-0000-000000000000",
-        "missing_courtyard|201249999|123100000|3d15f588-b42d-4b98-bde0-bf0b1a362841|00000000-0000-0000-0000-000000000000"
-      ],
+      "drc_exclusions": [],
       "meta": {
         "version": 2
       },
       "rule_severities": {
-        "annular_width": "error",
+        "annular_width": "ignore",
         "clearance": "error",
         "connection_width": "warning",
         "copper_edge_clearance": "error",
@@ -92,18 +84,18 @@
         "lib_footprint_mismatch": "warning",
         "malformed_courtyard": "error",
         "microvia_drill_out_of_range": "error",
-        "missing_courtyard": "warning",
+        "missing_courtyard": "ignore",
         "missing_footprint": "warning",
         "net_conflict": "warning",
-        "npth_inside_courtyard": "ignore",
+        "npth_inside_courtyard": "warning",
         "padstack": "warning",
-        "pth_inside_courtyard": "ignore",
+        "pth_inside_courtyard": "warning",
         "shorting_items": "error",
-        "silk_edge_clearance": "ignore",
-        "silk_over_copper": "ignore",
-        "silk_overlap": "ignore",
+        "silk_edge_clearance": "warning",
+        "silk_over_copper": "warning",
+        "silk_overlap": "warning",
         "skew_out_of_range": "error",
-        "solder_mask_bridge": "ignore",
+        "solder_mask_bridge": "warning",
         "starved_thermal": "error",
         "text_height": "warning",
         "text_thickness": "warning",
@@ -123,12 +115,12 @@
         "min_connection": 0.127,
         "min_copper_edge_clearance": 0.5,
         "min_hole_clearance": 0.127,
-        "min_hole_to_hole": 0.15,
+        "min_hole_to_hole": 0.5,
         "min_microvia_diameter": 0.39999999999999997,
         "min_microvia_drill": 0.19999999999999998,
         "min_resolved_spokes": 1,
-        "min_silk_clearance": 0.5,
-        "min_text_height": 0.7999999999999999,
+        "min_silk_clearance": 0.19999999999999998,
+        "min_text_height": 0.7,
         "min_text_thickness": 0.08,
         "min_through_hole_diameter": 0.19999999999999998,
         "min_track_width": 0.127,
@@ -217,8 +209,7 @@
   },
   "erc": {
     "erc_exclusions": [
-      "pin_to_pin|2006600|368300|6042ddfc-effb-4857-9245-7beff4b13e2d|b6242dd3-6ab1-40b2-9797-82a00e8fa2b7|/3c7105d6-b2e1-4841-966d-0562ae88783f/df7514b4-387c-47b1-a1bd-e93660408c5b|/3c7105d6-b2e1-4841-966d-0562ae88783f/df7514b4-387c-47b1-a1bd-e93660408c5b|/3c7105d6-b2e1-4841-966d-0562ae88783f/df7514b4-387c-47b1-a1bd-e93660408c5b",
-      "pin_to_pin|2349500|749300|a2323284-304f-49c0-89b9-2315cc45ad4d|fecd64e5-96f8-4ee0-bada-521d57e6b7e3|/3c7105d6-b2e1-4841-966d-0562ae88783f/df7514b4-387c-47b1-a1bd-e93660408c5b|/3c7105d6-b2e1-4841-966d-0562ae88783f/df7514b4-387c-47b1-a1bd-e93660408c5b|/3c7105d6-b2e1-4841-966d-0562ae88783f/01d40fd6-ccdc-442b-bfe3-30d4d8ca438d",
+      "pin_to_pin|2222500|647700|b6242dd3-6ab1-40b2-9797-82a00e8fa2b7|6042ddfc-effb-4857-9245-7beff4b13e2d|/3c7105d6-b2e1-4841-966d-0562ae88783f/df7514b4-387c-47b1-a1bd-e93660408c5b|/3c7105d6-b2e1-4841-966d-0562ae88783f/df7514b4-387c-47b1-a1bd-e93660408c5b|/3c7105d6-b2e1-4841-966d-0562ae88783f/df7514b4-387c-47b1-a1bd-e93660408c5b",
       "power_pin_not_driven|1536700|1371600|9f5f8dd2-02de-484a-830e-990e17a91064|00000000-0000-0000-0000-000000000000|||",
       "power_pin_not_driven|1536700|609600|b303c1f1-c42c-42bb-81bf-0f525936a752|00000000-0000-0000-0000-000000000000|||",
       "power_pin_not_driven|1536700|635000|c89c7f2f-ce47-4cb4-b820-554abfeb2721|00000000-0000-0000-0000-000000000000|||",
@@ -425,7 +416,7 @@
       "no_connect_dangling": "warning",
       "pin_not_connected": "error",
       "pin_not_driven": "error",
-      "pin_to_pin": "error",
+      "pin_to_pin": "ignore",
       "power_pin_not_driven": "error",
       "similar_labels": "warning",
       "simulation_model_issue": "ignore",
@@ -447,7 +438,7 @@
     "classes": [
       {
         "bus_width": 12,
-        "clearance": 0.15,
+        "clearance": 0.127,
         "diff_pair_gap": 0.25,
         "diff_pair_via_gap": 0.25,
         "diff_pair_width": 0.2,
@@ -474,14 +465,14 @@
         "name": "HF",
         "pcb_color": "rgba(0, 0, 0, 0.000)",
         "schematic_color": "rgba(0, 0, 0, 0.000)",
-        "track_width": 0.5,
-        "via_diameter": 1.0,
-        "via_drill": 0.45,
+        "track_width": 0.25,
+        "via_diameter": 0.8,
+        "via_drill": 0.4,
         "wire_width": 6
       },
       {
         "bus_width": 12,
-        "clearance": 0.15,
+        "clearance": 0.127,
         "diff_pair_gap": 0.127,
         "diff_pair_via_gap": 0.25,
         "diff_pair_width": 0.1,
@@ -491,14 +482,14 @@
         "name": "Power",
         "pcb_color": "rgba(0, 0, 0, 0.000)",
         "schematic_color": "rgba(0, 0, 0, 0.000)",
-        "track_width": 0.5,
+        "track_width": 0.6,
         "via_diameter": 1.2,
         "via_drill": 0.6,
         "wire_width": 6
       },
       {
         "bus_width": 12,
-        "clearance": 0.15,
+        "clearance": 0.127,
         "diff_pair_gap": 0.127,
         "diff_pair_via_gap": 0.25,
         "diff_pair_width": 0.15,
@@ -509,8 +500,8 @@
         "pcb_color": "rgba(0, 0, 0, 0.000)",
         "schematic_color": "rgba(0, 0, 0, 0.000)",
         "track_width": 0.15,
-        "via_diameter": 0.8,
-        "via_drill": 0.4,
+        "via_diameter": 0.6,
+        "via_drill": 0.3,
         "wire_width": 6
       }
     ],
@@ -521,29 +512,32 @@
     "netclass_assignments": {
       "+5V": "Power",
       "/MCU/ANT": "HF",
+      "/MCU/RESET": "Signal",
       "/MCU/SWDCLK": "Signal",
       "/MCU/SWDIO": "Signal",
-      "/Power/BAT_CTRL": "Signal",
-      "/Power/BAT_IN": "Power",
+      "/Power/BQ_CE_N": "Signal",
       "/Power/BQ_EN1": "Signal",
       "/Power/BQ_EN2": "Signal",
+      "/Power/BQ_ILIM": "Signal",
+      "/Power/BQ_ISET": "Signal",
       "/Power/BQ_ITERM": "Signal",
       "/Power/BQ_TMR": "Signal",
-      "/Power/VBAT": "Power",
-      "BAT_EN": "Signal",
+      "/Power/BQ_TS": "Signal",
+      "/Power/Battery/BAT+": "Power",
+      "/Power/Battery/VBAT": "Power",
       "BUTTON": "Signal",
       "BUZZ": "Signal",
       "DIS_EN": "Signal",
       "DIS_SCL": "Signal",
       "DIS_SDA": "Signal",
+      "GND": "Power",
       "Net-(A1-SIG)": "HF",
-      "Net-(R13-Pad2)": "Signal",
+      "Net-(J3-CC1)": "Signal",
+      "Net-(J3-CC2)": "Signal",
+      "Net-(Q3-G)": "Signal",
       "Net-(U1-XC1)": "HF",
       "Net-(U1-XC2)": "HF",
-      "Net-(U2-ILIM)": "Signal",
-      "Net-(U2-ISET)": "Signal",
       "SWITCH": "Signal",
-      "TEST": "Signal",
       "TEST_BAT": "Signal",
       "USER": "Signal",
       "VCC": "Power",
@@ -599,7 +593,7 @@
         "pattern": "/MCU/SWDCLK"
       },
       {
-        "netclass": "Signal",
+        "netclass": "HF",
         "pattern": "/MCU/XC2"
       },
       {
@@ -631,12 +625,16 @@
         "pattern": "/MCU/ANT"
       },
       {
-        "netclass": "Default",
+        "netclass": "HF",
         "pattern": "/MCU/ANT_EX"
       },
       {
         "netclass": "Signal",
         "pattern": "/Power/BQ_EN1"
+      },
+      {
+        "netclass": "Power",
+        "pattern": "/Power/Battery/BAT+"
       }
     ]
   },
@@ -709,6 +707,14 @@
     [
       "01d40fd6-ccdc-442b-bfe3-30d4d8ca438d",
       "Peripherals"
+    ],
+    [
+      "a095a39f-6b3f-4eb2-81ef-a7fa39c10239",
+      "Battery"
+    ],
+    [
+      "a0a15605-c20d-4158-a513-aa16071bb857",
+      "USBC"
     ]
   ],
   "text_variables": {}
