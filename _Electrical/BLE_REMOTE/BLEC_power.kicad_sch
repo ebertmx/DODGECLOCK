@@ -716,6 +716,7 @@
     )
   )
 
+
   (junction (at 45.72 64.77) (diameter 0) (color 0 0 0 0)
     (uuid 091a19ef-96f8-4ba6-9ae1-f257c280974d)
   )
@@ -1162,10 +1163,10 @@
       (effects (font (size 1.27 1.27)) (justify left) hide)
     )
   )
-  (global_label "TEST_BAT" (shape input) (at 97.79 163.83 180) (fields_autoplaced)
+  (global_label "LED_D" (shape input) (at 97.79 163.83 180) (fields_autoplaced)
     (effects (font (size 1.27 1.27)) (justify right))
     (uuid 95d904d5-9127-4014-9a93-65d4a525e301)
-    (property "Intersheetrefs" "${INTERSHEET_REFS}" (at 86.2173 163.83 0)
+    (property "Intersheetrefs" "${INTERSHEET_REFS}" (at 89.1995 163.83 0)
       (effects (font (size 1.27 1.27)) (justify right) hide)
     )
   )
