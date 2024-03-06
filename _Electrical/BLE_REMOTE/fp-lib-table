@@ -1,0 +1,6 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "_Parts")(type "KiCad")(uri "${KIPRJMOD}/_Parts")(options "")(descr ""))
+  (lib (name "RF_Antenna")(type "KiCad")(uri "${KIPRJMOD}/_Parts/RF_Antenna.pretty")(options "")(descr ""))
+  (lib (name "MyAntennas")(type "KiCad")(uri "${KIPRJMOD}/_Parts/PCB_Antenna_Lib/MyAntennas.pretty")(options "")(descr ""))
+)
