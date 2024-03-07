@@ -16,4 +16,8 @@
   (lib (name "IRF7319T")(type "KiCad")(uri "${KIPRJMOD}/_Parts/IRF7319T.kicad_sym")(options "")(descr ""))
   (lib (name "D2FS")(type "KiCad")(uri "${KIPRJMOD}/_Parts/D2FS.kicad_sym")(options "")(descr ""))
   (lib (name "316040005")(type "KiCad")(uri "${KIPRJMOD}/_Parts/316040005.kicad_sym")(options "")(descr ""))
+  (lib (name "AO3401A")(type "KiCad")(uri "${KIPRJMOD}/_Parts/AO3401A.kicad_sym")(options "")(descr ""))
+  (lib (name "AO3400A")(type "KiCad")(uri "${KIPRJMOD}/_Parts/AO3400A.kicad_sym")(options "")(descr ""))
+  (lib (name "SS8050")(type "KiCad")(uri "${KIPRJMOD}/_Parts/SS8050.kicad_sym")(options "")(descr ""))
+  (lib (name "TS-1187A-B-A-B")(type "KiCad")(uri "${KIPRJMOD}/_Parts/TS-1187A-B-A-B.kicad_sym")(options "")(descr ""))
 )
