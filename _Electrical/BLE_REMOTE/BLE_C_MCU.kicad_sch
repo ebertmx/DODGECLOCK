@@ -755,7 +755,6 @@
     )
   )
 
-
   (junction (at 36.83 118.11) (diameter 0) (color 0 0 0 0)
     (uuid 08ff8d2a-7a95-474d-9ee1-8ef836737ef0)
   )
@@ -1341,47 +1340,10 @@
     )
   )
 
-  (symbol (lib_id "Device:Crystal_GND24") (at 50.8 102.87 90) (unit 1)
-    (in_bom yes) (on_board yes) (dnp no)
-    (uuid 0abad95f-55cb-4403-8b22-a74499d45b39)
-    (property "Reference" "Y1" (at 55.88 105.41 90)
-      (effects (font (size 1.27 1.27)))
-    )
-    (property "Value" "Crystal_GND24" (at 63.5 100.33 90)
-      (effects (font (size 1.27 1.27)))
-    )
-    (property "Footprint" "_Parts:OSC_XRCGB32M000F2P01R0" (at 50.8 102.87 0)
-      (effects (font (size 1.27 1.27)) hide)
-    )
-    (property "Datasheet" "~" (at 50.8 102.87 0)
-      (effects (font (size 1.27 1.27)) hide)
-    )
-    (property "Part" "XRCGB32M000F2P01R0" (at 50.8 102.87 0)
-      (effects (font (size 1.27 1.27)) hide)
-    )
-    (property "JLCPCB Part#" "C1985928" (at 50.8 102.87 0)
-      (effects (font (size 1.27 1.27)) hide)
-    )
-    (property "LCSC Part #" "C7294588" (at 50.8 102.87 0)
-      (effects (font (size 1.27 1.27)) hide)
-    )
-    (pin "1" (uuid dd78967f-0c74-444f-a2c2-6e557e72d0dc))
-    (pin "2" (uuid b06e1921-0c91-4ab1-84e1-b8e49462c1dc))
-    (pin "3" (uuid b4323c3b-b69b-4c74-b0e1-a156349fe45a))
-    (pin "4" (uuid e7a42332-56d4-4389-b7a9-3afa92403956))
-    (instances
-      (project "BLE_REMOTE"
-        (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/3c7d46da-db2c-458d-86d8-33d657630bb5"
-          (reference "Y1") (unit 1)
-        )
-      )
-    )
-  )
-
   (symbol (lib_id "power:GND") (at 85.09 121.92 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid 0af7d03d-5af1-4644-ab68-38a1b12dc9f1)
-    (property "Reference" "#PWR07" (at 85.09 128.27 0)
+    (property "Reference" "#PWR08" (at 85.09 128.27 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 85.09 127 0)
@@ -1397,7 +1359,7 @@
     (instances
       (project "BLE_REMOTE"
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/3c7d46da-db2c-458d-86d8-33d657630bb5"
-          (reference "#PWR07") (unit 1)
+          (reference "#PWR08") (unit 1)
         )
       )
     )
@@ -1406,7 +1368,7 @@
   (symbol (lib_id "power:GND") (at 78.74 92.71 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 0e50ba95-b9d7-4f67-a339-8ec9475c5a9b)
-    (property "Reference" "#PWR06" (at 78.74 99.06 0)
+    (property "Reference" "#PWR07" (at 78.74 99.06 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 76.2 96.52 0)
@@ -1422,7 +1384,7 @@
     (instances
       (project "BLE_REMOTE"
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/3c7d46da-db2c-458d-86d8-33d657630bb5"
-          (reference "#PWR06") (unit 1)
+          (reference "#PWR07") (unit 1)
         )
       )
     )
@@ -1431,7 +1393,7 @@
   (symbol (lib_id "Device:C") (at 104.14 44.45 180) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 1219f09c-a1a3-48f2-b781-cd525a0c84d7)
-    (property "Reference" "C5" (at 102.87 41.91 90)
+    (property "Reference" "C9" (at 102.87 41.91 90)
       (effects (font (size 1.27 1.27)))
     )
     (property "Value" "NC" (at 102.87 48.26 90)
@@ -1460,7 +1422,7 @@
     (instances
       (project "BLE_REMOTE"
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/3c7d46da-db2c-458d-86d8-33d657630bb5"
-          (reference "C5") (unit 1)
+          (reference "C9") (unit 1)
         )
       )
     )
@@ -1488,7 +1450,7 @@
           (reference "#PWR036") (unit 1)
         )
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/3c7d46da-db2c-458d-86d8-33d657630bb5"
-          (reference "#PWR04") (unit 1)
+          (reference "#PWR05") (unit 1)
         )
       )
     )
@@ -1497,7 +1459,7 @@
   (symbol (lib_id "Device:C") (at 147.32 50.8 270) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 14582b6d-1087-47ac-9165-6aefe63b3b39)
-    (property "Reference" "C9" (at 149.86 49.53 90)
+    (property "Reference" "C13" (at 149.86 49.53 90)
       (effects (font (size 1.27 1.27)))
     )
     (property "Value" "4.7uF" (at 142.24 49.53 90)
@@ -1526,7 +1488,7 @@
     (instances
       (project "BLE_REMOTE"
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/3c7d46da-db2c-458d-86d8-33d657630bb5"
-          (reference "C9") (unit 1)
+          (reference "C13") (unit 1)
         )
       )
     )
@@ -1535,7 +1497,7 @@
   (symbol (lib_id "power:GND") (at 49.53 87.63 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid 14e5d1ce-eba2-4708-9e80-51b0ed1c4c12)
-    (property "Reference" "#PWR041" (at 49.53 93.98 0)
+    (property "Reference" "#PWR03" (at 49.53 93.98 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 49.53 92.71 0)
@@ -1551,7 +1513,7 @@
     (instances
       (project "BLE_REMOTE"
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/3c7d46da-db2c-458d-86d8-33d657630bb5"
-          (reference "#PWR041") (unit 1)
+          (reference "#PWR03") (unit 1)
         )
       )
     )
@@ -1560,7 +1522,7 @@
   (symbol (lib_id "Device:C") (at 43.18 107.95 90) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid 3781f9fd-392a-420f-b4a5-a17bfba8dd84)
-    (property "Reference" "C2" (at 44.45 111.76 0)
+    (property "Reference" "C6" (at 44.45 111.76 0)
       (effects (font (size 1.27 1.27)) (justify right))
     )
     (property "Value" "10pF" (at 41.91 111.76 0)
@@ -1589,7 +1551,47 @@
     (instances
       (project "BLE_REMOTE"
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/3c7d46da-db2c-458d-86d8-33d657630bb5"
-          (reference "C2") (unit 1)
+          (reference "C6") (unit 1)
+        )
+      )
+    )
+  )
+
+  (symbol (lib_id "Device:Crystal_GND24") (at 50.8 102.87 90) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid 3f85713c-eb9c-4594-9d2a-2e238ef64c7c)
+    (property "Reference" "Y1" (at 55.88 105.41 90)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Value" "Crystal_GND24" (at 63.5 100.33 90)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "_Parts:OSC_XRCGB32M000F2P01R0" (at 50.8 102.87 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "~" (at 50.8 102.87 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Part" "XRCGB32M000F2P01R0" (at 50.8 102.87 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "JLCPCB Part#" "C2901738" (at 50.8 102.87 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "LCSC Part #" "C2901738" (at 50.8 102.87 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid dd78967f-0c74-444f-a2c2-6e557e72d0dc))
+    (pin "2" (uuid b06e1921-0c91-4ab1-84e1-b8e49462c1dc))
+    (pin "3" (uuid b4323c3b-b69b-4c74-b0e1-a156349fe45a))
+    (pin "4" (uuid e7a42332-56d4-4389-b7a9-3afa92403956))
+    (instances
+      (project "BLE_REMOTE"
+        (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/3c7d46da-db2c-458d-86d8-33d657630bb5"
+          (reference "Y1") (unit 1)
+        )
+        (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/01d40fd6-ccdc-442b-bfe3-30d4d8ca438d"
+          (reference "Y2") (unit 1)
         )
       )
     )
@@ -1598,7 +1600,7 @@
   (symbol (lib_id "Device:C") (at 99.06 44.45 180) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 40860216-82d7-4e68-bf26-57a8f35bb4c2)
-    (property "Reference" "C4" (at 97.79 41.91 90)
+    (property "Reference" "C8" (at 97.79 41.91 90)
       (effects (font (size 1.27 1.27)))
     )
     (property "Value" "100nF" (at 97.79 49.53 90)
@@ -1624,7 +1626,7 @@
     (instances
       (project "BLE_REMOTE"
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/3c7d46da-db2c-458d-86d8-33d657630bb5"
-          (reference "C4") (unit 1)
+          (reference "C8") (unit 1)
         )
       )
     )
@@ -1658,7 +1660,7 @@
   (symbol (lib_id "power:GND") (at 63.5 140.97 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid 6f43d057-f225-4722-9a7c-d8bd7d975764)
-    (property "Reference" "#PWR05" (at 63.5 147.32 0)
+    (property "Reference" "#PWR06" (at 63.5 147.32 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 63.5 146.05 0)
@@ -1674,7 +1676,7 @@
     (instances
       (project "BLE_REMOTE"
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/3c7d46da-db2c-458d-86d8-33d657630bb5"
-          (reference "#PWR05") (unit 1)
+          (reference "#PWR06") (unit 1)
         )
       )
     )
@@ -1683,7 +1685,7 @@
   (symbol (lib_id "Device:C") (at 147.32 55.88 270) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 75ea418c-eed5-4f33-81e0-9cedcedd465e)
-    (property "Reference" "C10" (at 149.86 54.61 90)
+    (property "Reference" "C14" (at 149.86 54.61 90)
       (effects (font (size 1.27 1.27)))
     )
     (property "Value" "100nF" (at 143.51 54.61 90)
@@ -1709,7 +1711,7 @@
     (instances
       (project "BLE_REMOTE"
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/3c7d46da-db2c-458d-86d8-33d657630bb5"
-          (reference "C10") (unit 1)
+          (reference "C14") (unit 1)
         )
       )
     )
@@ -1752,7 +1754,7 @@
   (symbol (lib_id "power:GND") (at 115.57 38.1 90) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid 8fd78777-d3b9-4808-b1d1-bed87354a522)
-    (property "Reference" "#PWR09" (at 121.92 38.1 0)
+    (property "Reference" "#PWR010" (at 121.92 38.1 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 120.65 38.1 0)
@@ -1768,7 +1770,7 @@
     (instances
       (project "BLE_REMOTE"
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/3c7d46da-db2c-458d-86d8-33d657630bb5"
-          (reference "#PWR09") (unit 1)
+          (reference "#PWR010") (unit 1)
         )
       )
     )
@@ -1796,7 +1798,7 @@
           (reference "#PWR036") (unit 1)
         )
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/3c7d46da-db2c-458d-86d8-33d657630bb5"
-          (reference "#PWR010") (unit 1)
+          (reference "#PWR011") (unit 1)
         )
       )
     )
@@ -1877,7 +1879,7 @@
   (symbol (lib_id "power:GND") (at 114.3 157.48 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid b8c38037-4173-4375-8352-72f87ab05261)
-    (property "Reference" "#PWR08" (at 114.3 163.83 0)
+    (property "Reference" "#PWR09" (at 114.3 163.83 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 114.3 162.56 0)
@@ -1893,7 +1895,7 @@
     (instances
       (project "BLE_REMOTE"
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/3c7d46da-db2c-458d-86d8-33d657630bb5"
-          (reference "#PWR08") (unit 1)
+          (reference "#PWR09") (unit 1)
         )
       )
     )
@@ -1902,7 +1904,7 @@
   (symbol (lib_id "power:GND") (at 60.96 66.04 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid c1348ba7-2e8b-48c4-b10c-87a82e1797b2)
-    (property "Reference" "#PWR03" (at 60.96 72.39 0)
+    (property "Reference" "#PWR04" (at 60.96 72.39 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 60.96 71.12 0)
@@ -1918,7 +1920,7 @@
     (instances
       (project "BLE_REMOTE"
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/3c7d46da-db2c-458d-86d8-33d657630bb5"
-          (reference "#PWR03") (unit 1)
+          (reference "#PWR04") (unit 1)
         )
       )
     )
@@ -1927,7 +1929,7 @@
   (symbol (lib_id "Device:C") (at 78.74 88.9 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid c1bc44a4-1249-4231-b52b-c8e6454ebf82)
-    (property "Reference" "C3" (at 82.55 87.63 0)
+    (property "Reference" "C7" (at 82.55 87.63 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Value" "0.8pF" (at 82.55 90.17 0)
@@ -1953,7 +1955,7 @@
     (instances
       (project "BLE_REMOTE"
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/3c7d46da-db2c-458d-86d8-33d657630bb5"
-          (reference "C3") (unit 1)
+          (reference "C7") (unit 1)
         )
       )
     )
@@ -1962,7 +1964,7 @@
   (symbol (lib_id "Device:C") (at 114.3 44.45 180) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid c211860b-878c-422f-a631-49e2bb2f0316)
-    (property "Reference" "C7" (at 113.03 40.64 90)
+    (property "Reference" "C11" (at 113.03 40.64 90)
       (effects (font (size 1.27 1.27)))
     )
     (property "Value" "1uF" (at 113.03 48.26 90)
@@ -1991,7 +1993,7 @@
     (instances
       (project "BLE_REMOTE"
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/3c7d46da-db2c-458d-86d8-33d657630bb5"
-          (reference "C7") (unit 1)
+          (reference "C11") (unit 1)
         )
       )
     )
@@ -2082,7 +2084,7 @@
   (symbol (lib_id "power:GND") (at 153.67 55.88 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid d23a26c3-25bd-4e30-97e4-35f58464f2ac)
-    (property "Reference" "#PWR011" (at 153.67 62.23 0)
+    (property "Reference" "#PWR012" (at 153.67 62.23 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 153.67 60.96 0)
@@ -2098,7 +2100,7 @@
     (instances
       (project "BLE_REMOTE"
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/3c7d46da-db2c-458d-86d8-33d657630bb5"
-          (reference "#PWR011") (unit 1)
+          (reference "#PWR012") (unit 1)
         )
       )
     )
@@ -2107,7 +2109,7 @@
   (symbol (lib_id "Device:C") (at 41.91 97.79 270) (mirror x) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid d9722e02-4963-43f9-aa84-9bc914722e3e)
-    (property "Reference" "C1" (at 43.18 93.98 0)
+    (property "Reference" "C5" (at 43.18 93.98 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Value" "10pF" (at 40.64 93.98 0)
@@ -2136,7 +2138,7 @@
     (instances
       (project "BLE_REMOTE"
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/3c7d46da-db2c-458d-86d8-33d657630bb5"
-          (reference "C1") (unit 1)
+          (reference "C5") (unit 1)
         )
       )
     )
@@ -2180,7 +2182,7 @@
   (symbol (lib_id "Device:C") (at 147.32 45.72 270) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid e55917f2-2a54-4aac-8d90-522aeb3e2708)
-    (property "Reference" "C8" (at 149.86 44.45 90)
+    (property "Reference" "C12" (at 149.86 44.45 90)
       (effects (font (size 1.27 1.27)))
     )
     (property "Value" "100nF" (at 142.24 44.45 90)
@@ -2206,7 +2208,7 @@
     (instances
       (project "BLE_REMOTE"
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/3c7d46da-db2c-458d-86d8-33d657630bb5"
-          (reference "C8") (unit 1)
+          (reference "C12") (unit 1)
         )
       )
     )
@@ -2215,7 +2217,7 @@
   (symbol (lib_id "Device:C") (at 109.22 44.45 180) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid eeff3720-d657-40e4-905b-b33e2b2b675a)
-    (property "Reference" "C6" (at 107.95 41.91 90)
+    (property "Reference" "C10" (at 107.95 41.91 90)
       (effects (font (size 1.27 1.27)))
     )
     (property "Value" "100pF" (at 107.95 49.53 90)
@@ -2244,7 +2246,7 @@
     (instances
       (project "BLE_REMOTE"
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f/3c7d46da-db2c-458d-86d8-33d657630bb5"
-          (reference "C6") (unit 1)
+          (reference "C10") (unit 1)
         )
       )
     )

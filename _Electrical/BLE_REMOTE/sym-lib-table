@@ -20,4 +20,5 @@
   (lib (name "AO3400A")(type "KiCad")(uri "${KIPRJMOD}/_Parts/AO3400A.kicad_sym")(options "")(descr ""))
   (lib (name "SS8050")(type "KiCad")(uri "${KIPRJMOD}/_Parts/SS8050.kicad_sym")(options "")(descr ""))
   (lib (name "TS-1187A-B-A-B")(type "KiCad")(uri "${KIPRJMOD}/_Parts/TS-1187A-B-A-B.kicad_sym")(options "")(descr ""))
+  (lib (name "TS02-66-120-BK-260-LCR-D")(type "KiCad")(uri "${KIPRJMOD}/_Parts/TS02-66-120-BK-260-LCR-D.kicad_sym")(options "")(descr ""))
 )

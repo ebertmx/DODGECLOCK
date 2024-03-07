@@ -138,7 +138,6 @@
     )
   )
 
-
   (junction (at 223.52 143.51) (diameter 0) (color 0 0 0 0)
     (uuid c1466f74-3089-4704-97ee-66dcc61a6319)
   )
@@ -257,7 +256,7 @@
           (reference "C16") (unit 1)
         )
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f"
-          (reference "C22") (unit 1)
+          (reference "C2") (unit 1)
         )
       )
       (project "Battery"
@@ -306,7 +305,7 @@
           (reference "C16") (unit 1)
         )
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f"
-          (reference "C21") (unit 1)
+          (reference "C1") (unit 1)
         )
       )
       (project "Battery"
@@ -355,7 +354,7 @@
           (reference "C16") (unit 1)
         )
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f"
-          (reference "C24") (unit 1)
+          (reference "C3") (unit 1)
         )
       )
       (project "Battery"
@@ -441,7 +440,7 @@
           (reference "C16") (unit 1)
         )
         (path "/3c7105d6-b2e1-4841-966d-0562ae88783f"
-          (reference "C23") (unit 1)
+          (reference "C4") (unit 1)
         )
       )
       (project "Battery"
