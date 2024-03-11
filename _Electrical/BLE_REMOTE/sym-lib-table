@@ -21,4 +21,5 @@
   (lib (name "SS8050")(type "KiCad")(uri "${KIPRJMOD}/_Parts/SS8050.kicad_sym")(options "")(descr ""))
   (lib (name "TS-1187A-B-A-B")(type "KiCad")(uri "${KIPRJMOD}/_Parts/TS-1187A-B-A-B.kicad_sym")(options "")(descr ""))
   (lib (name "TS02-66-120-BK-260-LCR-D")(type "KiCad")(uri "${KIPRJMOD}/_Parts/TS02-66-120-BK-260-LCR-D.kicad_sym")(options "")(descr ""))
+  (lib (name "MIC5528_3_3yMT_TR")(type "KiCad")(uri "${KIPRJMOD}/_Parts/MIC5528_3_3yMT_TR.kicad_sym")(options "")(descr ""))
 )

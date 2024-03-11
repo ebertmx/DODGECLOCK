@@ -35,8 +35,8 @@
         "other_text_upright": false,
         "pads": {
           "drill": 0.0,
-          "height": 1.02862,
-          "width": 1.02862
+          "height": 1.524,
+          "width": 1.524
         },
         "silk_line_width": 0.16,
         "silk_text_italic": false,
@@ -64,15 +64,20 @@
         "clearance|132029500|104269000|cc3daf98-7bba-4fc3-9eed-5cf16416ba41|bf1eed08-9e78-4535-b1c5-2d0529756cad",
         "clearance|132029500|95629000|c03dca4c-72e7-4995-beb4-8a79d90be793|25fc2878-09e1-4f11-aec7-2ae4c3e2983d",
         "clearance|132029500|95629000|c03dca4c-72e7-4995-beb4-8a79d90be793|d1eef310-6b94-4350-96f5-5fc2031b4f42",
+        "clearance|159789000|97742000|22eb68d1-313b-4305-b242-837867c1131d|bacccbb3-b525-4789-99c8-aa7e26a038e5",
         "clearance|160139000|97742000|22eb68d1-313b-4305-b242-837867c1131d|da4bfa7a-722a-44d2-82dc-9329945eb8d7",
         "clearance|165481000|98044000|939a86f4-b9e0-4ca7-930a-e9598edb938d|03d74303-cbed-4b8b-a0cc-1f4168e5dde8",
+        "clearance|165624000|98022000|03d74303-cbed-4b8b-a0cc-1f4168e5dde8|153351fc-96d6-4828-9335-4d9ed2732b1f",
         "clearance|165624000|98022000|153351fc-96d6-4828-9335-4d9ed2732b1f|03d74303-cbed-4b8b-a0cc-1f4168e5dde8",
         "footprint_type_mismatch|169724000|99922000|cc57c011-b412-402f-a6c6-3966fe12b823|00000000-0000-0000-0000-000000000000",
         "items_not_allowed|164943800|98044000|939a86f4-b9e0-4ca7-930a-e9598edb938d|00000000-0000-0000-0000-000000000000",
+        "items_not_allowed|164994500|98488600|5b72992f-501f-42b9-8235-aa61c16291fb|00000000-0000-0000-0000-000000000000",
         "items_not_allowed|164994500|98520000|5b72992f-501f-42b9-8235-aa61c16291fb|00000000-0000-0000-0000-000000000000",
         "items_not_allowed|165406000|98736667|66a199ce-de59-4eda-a661-40fe97be722a|00000000-0000-0000-0000-000000000000",
         "items_not_allowed|165624000|98022000|153351fc-96d6-4828-9335-4d9ed2732b1f|00000000-0000-0000-0000-000000000000",
         "items_not_allowed|165712084|98228667|03d74303-cbed-4b8b-a0cc-1f4168e5dde8|00000000-0000-0000-0000-000000000000",
+        "items_not_allowed|167100871|98734360|66a199ce-de59-4eda-a661-40fe97be722a|00000000-0000-0000-0000-000000000000",
+        "items_not_allowed|167105565|98228667|03d74303-cbed-4b8b-a0cc-1f4168e5dde8|00000000-0000-0000-0000-000000000000",
         "solder_mask_bridge|128679500|104269000|60c98e76-023f-4ff6-ba01-6df919497cab|86cfe08b-47a4-4dc6-a378-ee1b378fd902",
         "solder_mask_bridge|128679500|104269000|76859ec4-5f09-4898-b78a-0905cc0506a1|86cfe08b-47a4-4dc6-a378-ee1b378fd902",
         "solder_mask_bridge|128679500|95629000|eda4886e-1a3d-47c7-bb44-cbac3f80bb8f|714c2c4f-82f3-4dba-a6f0-8784ab6583a4",
@@ -119,7 +124,7 @@
         "shorting_items": "error",
         "silk_edge_clearance": "warning",
         "silk_over_copper": "warning",
-        "silk_overlap": "warning",
+        "silk_overlap": "ignore",
         "skew_out_of_range": "error",
         "solder_mask_bridge": "warning",
         "starved_thermal": "error",
@@ -234,15 +239,7 @@
     "equivalence_files": []
   },
   "erc": {
-    "erc_exclusions": [
-      "pin_to_pin|2222500|647700|b6242dd3-6ab1-40b2-9797-82a00e8fa2b7|6042ddfc-effb-4857-9245-7beff4b13e2d|/3c7105d6-b2e1-4841-966d-0562ae88783f/df7514b4-387c-47b1-a1bd-e93660408c5b|/3c7105d6-b2e1-4841-966d-0562ae88783f/df7514b4-387c-47b1-a1bd-e93660408c5b|/3c7105d6-b2e1-4841-966d-0562ae88783f/df7514b4-387c-47b1-a1bd-e93660408c5b",
-      "power_pin_not_driven|1536700|1371600|9f5f8dd2-02de-484a-830e-990e17a91064|00000000-0000-0000-0000-000000000000|||",
-      "power_pin_not_driven|1536700|609600|b303c1f1-c42c-42bb-81bf-0f525936a752|00000000-0000-0000-0000-000000000000|||",
-      "power_pin_not_driven|1536700|635000|c89c7f2f-ce47-4cb4-b820-554abfeb2721|00000000-0000-0000-0000-000000000000|||",
-      "power_pin_not_driven|1536700|660400|b8f2d3c9-41b1-4692-8bbb-d7842befb2c1|00000000-0000-0000-0000-000000000000|||",
-      "power_pin_not_driven|1536700|685800|1a2b129a-bfcf-4c0a-8229-259a916da382|00000000-0000-0000-0000-000000000000|||",
-      "power_pin_not_driven|520700|660400|fb289de0-7cda-4870-99e8-9cc4702925d8|00000000-0000-0000-0000-000000000000|||"
-    ],
+    "erc_exclusions": [],
     "meta": {
       "version": 0
     },
