@@ -755,7 +755,6 @@
     )
   )
 
-
   (junction (at 36.83 118.11) (diameter 0) (color 0 0 0 0)
     (uuid 08ff8d2a-7a95-474d-9ee1-8ef836737ef0)
   )
@@ -1817,7 +1816,7 @@
     (property "Value" "RESET" (at 55.88 128.27 0)
       (effects (font (size 1.27 1.27)) hide)
     )
-    (property "Footprint" "Connector_PinHeader_1.27mm:PinHeader_1x02_P1.27mm_Vertical" (at 76.2 118.11 0)
+    (property "Footprint" "Connector_PinHeader_1.27mm:PinHeader_2x01_P1.27mm_Vertical_SMD" (at 76.2 118.11 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Datasheet" "~" (at 76.2 118.11 0)
