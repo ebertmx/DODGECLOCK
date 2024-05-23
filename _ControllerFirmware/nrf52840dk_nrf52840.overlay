@@ -58,7 +58,7 @@
 };
 
 &pwm0 {
-	status = "disabled";
+	status = "okay";
 };
 
 &sw_pwm {
@@ -68,4 +68,8 @@
 
 &pwm_led0 {
 	pwms = <&sw_pwm 0 PWM_MSEC(20) PWM_POLARITY_INVERTED>;
+};
+
+&timer2 {
+	status = "okay";
 };

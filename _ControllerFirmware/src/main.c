@@ -18,7 +18,7 @@
 
 #include <zephyr/settings/settings.h>
 
-#include <zephyr/sys/poweroff.h>
+//#include <zephyr/sys/poweroff.h>
 #include <zephyr/sys/util.h>
 
 #include "DCLK.h"
@@ -239,5 +239,5 @@ void poweroff(void)
 	LOG_INF("POWER OFF");
 	interface_off();
 
-	sys_poweroff();
+	//sys_poweroff();
 }
