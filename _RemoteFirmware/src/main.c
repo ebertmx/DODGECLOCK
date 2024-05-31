@@ -13,6 +13,7 @@
 #include <sys/printk.h>
 #include <sys/byteorder.h>
 #include <zephyr.h>
+#include <settings/settings.h>
 
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/hci.h>
@@ -20,7 +21,6 @@
 #include <bluetooth/uuid.h>
 #include <bluetooth/gatt.h>
 #include <bluetooth/services/bas.h>
-//#include <bluetooth/services/hrs.h>
 
 #include "dclk_service.h"
 
@@ -66,6 +66,32 @@ static void bt_ready(void)
 	printk("Advertising successfully started\n");
 }
 
+
+static void auth_pairing(struct bt_conn *conn)
+{
+	char addr[BT_ADDR_LE_STR_LEN];
+	bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
+	int err = bt_conn_auth_pairing_confirm(conn);
+	printk("Pairing Authorized %d: %s\n", err, addr);
+}
+
+
+static void passkey_entry(struct bt_conn *conn)
+{
+	printk("Sending entry passkey = %d", 123456);
+	bt_conn_auth_passkey_entry(conn, 123456);
+}
+
+void passkey_display(struct bt_conn *conn, unsigned int passkey)
+{
+	printk("Controller passkey = %d", passkey);
+}
+
+void passkey_confirm(struct bt_conn *conn, unsigned int passkey)
+{
+	printk("Confirm Passkey = %d", passkey);
+	bt_conn_auth_passkey_confirm(conn);
+}
 static void auth_cancel(struct bt_conn *conn)
 {
 	char addr[BT_ADDR_LE_STR_LEN];
@@ -74,10 +100,16 @@ static void auth_cancel(struct bt_conn *conn)
 
 	printk("Pairing cancelled: %s\n", addr);
 }
-
 static struct bt_conn_auth_cb auth_cb_display = {
+	.passkey_display = passkey_display,
+	.passkey_confirm = passkey_confirm,
+	.passkey_entry = passkey_entry,
 	.cancel = auth_cancel,
+	.pairing_confirm = auth_pairing,
 };
+
+
+
 
 static void bas_notify(void)
 {
@@ -92,33 +124,21 @@ static void bas_notify(void)
 	bt_bas_set_battery_level(battery_level);
 }
 
-// static void hrs_notify(void)
-// {
-// 	static uint16_t heartrate = 90U;
-
-// 	/* Heartrate measurements simulation */
-// 	heartrate++;
-// 	if (heartrate == 160U) {
-// 		heartrate = 90U;
-// 	}
-
-// 	bt_dclk_notify(heartrate);
-// }
-
 
 /*SHOT CLOCK*/
 
 const uint32_t CLOCK_MAX_VALUE = 10000; // msec
 
-static void dclk_expire_cb(void);
-static void dclk_stop_cb(void);
+static void dclk_expire_cb(struct k_timer *timer_id);
+static void dclk_stop_cb(struct k_timer *timer_id);
 K_TIMER_DEFINE(dclk_timer, &dclk_expire_cb, &dclk_stop_cb);
 
 enum dclk_state_type
 {
 	RUN,
 	PAUSE,
-	STOP
+	STOP,
+	EXPRIRE
 };
 // struct k_timer dclk_timer;
 static enum dclk_state_type dclk_state = 0; // shot clock state
@@ -145,7 +165,7 @@ static void dclk_resume()
 	}
 	else
 	{
-		// LOG_INF("Clock is not is pause state");
+		// printk("Clock is not is pause state");
 		k_timer_start(&dclk_timer, K_MSEC(CLOCK_MAX_VALUE), K_NO_WAIT);
 	}
 	dclk_state = RUN;
@@ -169,17 +189,19 @@ void dclk_notify()
 }
 
 
-static void dclk_expire_cb(void)
+static void dclk_expire_cb(struct k_timer *timer_id)
 {
-	dclk_start();
+	//dclk_start();
+	dclk_state = EXPRIRE;
+	dclk_value = 0;
+	bt_dclk_notify(dclk_value, dclk_state);
 
 }
-static void dclk_stop_cb(void)
+
+static void dclk_stop_cb(struct k_timer *timer_id)
 {
 
 }
-
-
 
 
 
@@ -202,6 +224,8 @@ void main(void)
 	bt_conn_cb_register(&conn_callbacks);
 	bt_conn_auth_cb_register(&auth_cb_display);
 
+	//bt_unpair(BT_ID_DEFAULT, BT_ADDR_LE_ANY);
+	//err = settings_load();
 	/* Implement notification. At the moment there is no suitable way
 	 * of starting delayed work so we do it here
 	 */
