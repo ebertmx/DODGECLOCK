@@ -7,7 +7,8 @@
 	"settings": {
 		"nrf-connect.applications": [
 			"${workspaceFolder}\\_ControllerFirmware",
-			"${workspaceFolder}\\_DisplayFirmware"
+			"${workspaceFolder}\\_DisplayFirmware",
+			"${workspaceFolder}\\_RemoteFirmware"
 		],
 		"files.associations": {
 			"dclk_client.h": "c",
@@ -19,7 +20,8 @@
 			"lvgl.h": "c",
 			"lv_printf.h": "c",
 			"pwm.h": "c",
-			"interface_display.h": "c"
+			"interface_display.h": "c",
+			"types.h": "c"
 		},
 		"nrf-connect.debugging.bindings": {
 			"${workspaceFolder}/_ControllerFirmware/build_810": "Launch build_810"
