@@ -170,12 +170,12 @@ int setup_button(struct button_t *button, active_func user_cb)
 int buzzer_init()
 {
 
-	// if (!pwm_is_ready_dt(&pwm_buzz))
-	// {
-	// 	LOG_ERR("Error: PWM device %s is not ready\n",
-	// 			pwm_buzz.dev->name);
-	// 	return 0;
-	// }
+	if (!pwm_is_ready_dt(&pwm_buzz))
+	{
+		LOG_ERR("Error: PWM device %s is not ready\n",
+				pwm_buzz.dev->name);
+		return 0;
+	}
 
 	return 0;
 }
