@@ -219,13 +219,25 @@ void main(void)
 		return;
 	}
 
-	bt_ready();
+		if(IS_ENABLED(CONFIG_SETTINGS))
+	{
+		err = settings_load();
+		if (err)
+		{
+			return err;
+		}
+	}
+
+
 
 	bt_conn_cb_register(&conn_callbacks);
 	bt_conn_auth_cb_register(&auth_cb_display);
 
+	bt_ready();
+
 	//bt_unpair(BT_ID_DEFAULT, BT_ADDR_LE_ANY);
-	//err = settings_load();
+
+	
 	/* Implement notification. At the moment there is no suitable way
 	 * of starting delayed work so we do it here
 	 */
