@@ -1,7 +1,5 @@
 {
-    "nrf-connect.applications": [
-        "${workspaceFolder}"
-    ],
+    "nrf-connect.applications": [],
     "files.associations": {
         "dclk.h": "c"
     }
