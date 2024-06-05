@@ -26,6 +26,7 @@
 #include "dclk_service.h"
 
 #include <logging/log.h>
+#include <sys/printk.h>
 
 LOG_MODULE_REGISTER(main_app, LOG_LEVEL_INF);
 
@@ -33,6 +34,10 @@ static void bt_pairing_stop();
 static void bt_pairing_start();
 void bt_stop_advertise();
 void bt_start_advertise();
+
+
+K_WORK_DEFINE(advertise_DCLK_work, bt_start_advertise);
+K_WORK_DEFINE(pair_DCLK_work, bt_pairing_start);
 
 static const struct bt_data ad[] = {
 	BT_DATA_BYTES(BT_DATA_FLAGS, (BT_LE_AD_GENERAL | BT_LE_AD_NO_BREDR)),
@@ -82,71 +87,93 @@ static void pairing_complete(struct bt_conn *conn, bool bonded)
 	}
 }
 
-bool check_paired_list(struct bt_conn *conn)
-{
 
-	for (int i = bt_dclk_info.num_paired; i > 0; i--)
+static void setup_accept_list_cb(const struct bt_bond_info *info, void *user_data)
+{
+	int *bond_cnt = user_data;
+
+	if ((*bond_cnt) < 0)
 	{
-
-		if (conn == bt_dclk_info.conn_list[i])
-		{
-			LOG_INF("Connection verified");
-			return true;
-		}
+		return;
 	}
-	LOG_INF("Connection not in paired list");
 
-	return false;
-}
-
-static void connected(struct bt_conn *conn, uint8_t err)
-{
+	int err = bt_le_whitelist_add(&info->addr);
+	LOG_INF("Added following peer to accept list: %x %x\n", info->addr.a.val[0],
+			info->addr.a.val[1]);
 	if (err)
 	{
-		LOG_INF("Connection failed (err 0x%02x)\n", err);
+		LOG_ERR("Cannot add peer to filter accept list (err: %d)\n", err);
+		(*bond_cnt) = -EIO;
 	}
 	else
 	{
-		bt_dclk_info.num_conn++;
-		LOG_INF("Connected\n : %d", bt_dclk_info.num_conn);
-
-		if (!bt_dclk_info.pair_en)
-		{
-			LOG_INF("Validating Connection");
-
-			if (!check_paired_list(conn))
-			{
-				LOG_INF("Disconnecting, not valid connection");
-				bt_conn_disconnect(conn, BT_HCI_ERR_AUTH_FAIL);
-			}
-			else
-			{
-				bt_stop_advertise();
-			}
-		}
-		else if (bt_dclk_info.num_paired >= CONFIG_BT_MAX_CONN)
-		{
-			LOG_INF("Disconnecting, max paired devices");
-			bt_conn_disconnect(conn, BT_HCI_ERR_AUTH_FAIL);
-		}
+		(*bond_cnt)++;
 	}
 }
 
-static void disconnected(struct bt_conn *conn, uint8_t reason)
+// ADVERTISING
+static int setup_accept_list(uint8_t local_id)
 {
-	LOG_INF("Disconnected (reason 0x%02x)\n", reason);
-	bt_dclk_info.num_conn--;
+	int err = bt_le_whitelist_clear();
 
-	if (bt_dclk_info.num_conn < bt_dclk_info.num_paired)
+	if (err)
 	{
-		LOG_INF("Attempting to reestablish connection");
-		bt_start_advertise();
+		LOG_INF("Cannot clear BLE accept list (err: %d)\n", err);
+		return err;
+	}
+
+	int bond_cnt = 0;
+
+	bt_foreach_bond(local_id, setup_accept_list_cb, &bond_cnt);
+
+	return bond_cnt;
+}
+
+
+
+static void on_connected(struct bt_conn *conn, uint8_t err)
+{
+	if (err)
+	{
+		LOG_INF("Connection failed (err %u)\n", err);
+		k_work_submit(&advertise_DCLK_work);
+		return;
+	}
+
+	LOG_INF("BT Connected\n");
+	bt_dclk_info.num_conn++;
+	// bt_conn_set_security(conn, BT_SECURITY_L4);
+}
+
+static void on_disconnected(struct bt_conn *conn, uint8_t reason)
+{
+	LOG_INF("BT Disconnected (reason %u)\n", reason);
+	bt_dclk_info.num_conn--;
+	// advertize to try and reconnect
+	k_work_submit(&advertise_DCLK_work);
+}
+
+static void on_security_changed(struct bt_conn *conn, bt_security_t level, enum bt_security_err err)
+{
+	char addr[BT_ADDR_LE_STR_LEN];
+
+	bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
+
+	if (!err)
+	{
+		LOG_INF("Security changed: %s level %u\n", addr, level);
+	}
+	else
+	{
+		LOG_INF("Security failed: %s level %u err %d\n", addr, level, err);
 	}
 }
+
 
 static struct bt_conn_cb conn_callbacks = {
-	.connected = connected,
-	.disconnected = disconnected,
+	.connected = on_connected,
+	.disconnected = on_disconnected,
+	.security_changed = on_security_changed,
 };
 
 void bt_stop_advertise(void)
@@ -160,20 +187,35 @@ void bt_stop_advertise(void)
 	LOG_INF("Advertising terminated");
 }
 
-void bt_start_advertise(void)
+void bt_start_advertise(struct k_work *work)
 {
-	int err;
+	int err = 0;
+	bt_le_adv_stop();
 
-	// LOG_INF("Bluetooth initialized\n");
-
-	err = bt_le_adv_start(BT_LE_ADV_CONN_NAME, ad, ARRAY_SIZE(ad), NULL, 0);
-	if (err)
+	int allowed_cnt = setup_accept_list(BT_ID_DEFAULT);
+	LOG_DBG("bond_count = %d", allowed_cnt);
+	if (allowed_cnt < 0)
 	{
-		LOG_INF("Advertising failed to start (err %d)\n", err);
+		LOG_INF("Acceptlist setup failed (err:%d)\n", allowed_cnt);
+	}
+	else if (allowed_cnt > 0)
+	{
+		LOG_INF("Acceptlist setup number  = %d \n", allowed_cnt);
+		// One shot advertizing due to bt_adv_param settings
+		// stops upon connection
+		err = bt_le_adv_start(BT_LE_ADV_FP_WHITELIST_BOTH, ad, ARRAY_SIZE(ad), NULL,0);
+
+		if (err)
+		{
+			LOG_INF("Advertising failed to start (err %d)\n", err);
+			return;
+		}
+		LOG_INF("Advertising successfully started\n");
 		return;
 	}
 
-	LOG_INF("Advertising successfully started\n");
+	LOG_INF("No Bonds -- Please start pairing");
+	return;
 }
 
 static void auth_pairing(struct bt_conn *conn)
@@ -220,17 +262,42 @@ static struct bt_conn_auth_cb auth_cb_display = {
 
 static void bt_pairing_start()
 {
-	LOG_INF("Pairing enabled");
-	bt_unpair(BT_ID_DEFAULT, BT_ADDR_LE_ANY);
-	bt_dclk_info.num_paired = 0;
-	bt_dclk_info.pair_en = true;
-	bt_start_advertise();
+	LOG_INF("Pairing start--");
+	int err = 0;
+
+	bt_le_adv_stop();
+
+	err = bt_unpair(BT_ID_DEFAULT, BT_ADDR_LE_ANY);
+	if (err)
+	{
+		LOG_INF("Cannot delete bond (err: %d)\n", err);
+	}
+	else
+	{
+		LOG_INF("Bond deleted succesfully \n");
+	}
+
+	LOG_INF("Advertising with no Accept list \n");
+	// One shot advertizing due to bt_adv_param settings
+	// stops upon connection
+	err = bt_le_adv_start(BT_LE_ADV_FP_NO_WHITELIST, ad, ARRAY_SIZE(ad), NULL,0);
+
+	if (err)
+	{
+		LOG_INF("Advertising failed to start (err %d)\n", err);
+		return;
+	}
 }
 
 static void bt_pairing_stop()
 {
-	LOG_INF("Pairing disabled");
-	bt_stop_advertise();
+	LOG_INF("Pairing stop");
+	int err = bt_le_adv_stop();
+	if (err)
+	{
+		LOG_INF("Falied to terminate advertising");
+	}
+	LOG_INF("Advertising terminated");
 	bt_dclk_info.pair_en = false;
 }
 
@@ -247,6 +314,10 @@ static void bas_notify(void)
 
 	bt_bas_set_battery_level(bt_dclk_info.num_paired);
 }
+
+
+
+
 
 /*SHOT CLOCK*/
 
