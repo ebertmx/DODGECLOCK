@@ -150,6 +150,9 @@ C:/dev/DodgeballClock/_RemoteFirmware/build/zephyr/drivers/disk/CMakeFiles/edit_
 C:/dev/DodgeballClock/_RemoteFirmware/build/zephyr/drivers/disk/CMakeFiles/rebuild_cache.dir
 C:/dev/DodgeballClock/_RemoteFirmware/build/zephyr/drivers/clock_control/CMakeFiles/edit_cache.dir
 C:/dev/DodgeballClock/_RemoteFirmware/build/zephyr/drivers/clock_control/CMakeFiles/rebuild_cache.dir
+C:/dev/DodgeballClock/_RemoteFirmware/build/zephyr/drivers/gpio/CMakeFiles/drivers__gpio.dir
+C:/dev/DodgeballClock/_RemoteFirmware/build/zephyr/drivers/gpio/CMakeFiles/edit_cache.dir
+C:/dev/DodgeballClock/_RemoteFirmware/build/zephyr/drivers/gpio/CMakeFiles/rebuild_cache.dir
 C:/dev/DodgeballClock/_RemoteFirmware/build/zephyr/drivers/sensor/CMakeFiles/edit_cache.dir
 C:/dev/DodgeballClock/_RemoteFirmware/build/zephyr/drivers/sensor/CMakeFiles/rebuild_cache.dir
 C:/dev/DodgeballClock/_RemoteFirmware/build/zephyr/drivers/sensor/grove/CMakeFiles/edit_cache.dir

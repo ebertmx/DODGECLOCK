@@ -28,16 +28,25 @@
 #include <logging/log.h>
 #include <sys/printk.h>
 
+#include <device.h>
+#include <devicetree.h>
+#include <drivers/gpio.h>
+
+#define LED0_NODE DT_ALIAS(led0)
+#define LED0 DT_GPIO_LABEL(LED0_NODE, gpios)
+#define PIN DT_GPIO_PIN(LED0_NODE, gpios)
+#define FLAGS DT_GPIO_FLAGS(LED0_NODE, gpios)
+
 LOG_MODULE_REGISTER(main_app, LOG_LEVEL_INF);
 
-static void bt_pairing_stop();
+// static void bt_stop_advertize();
 static void bt_pairing_start();
 void bt_stop_advertise();
 void bt_start_advertise();
 
-
-K_WORK_DEFINE(advertise_DCLK_work, bt_start_advertise);
-K_WORK_DEFINE(pair_DCLK_work, bt_pairing_start);
+K_WORK_DEFINE(bt_start_adv_work, bt_start_advertise);
+K_WORK_DEFINE(bt_pairing_work, bt_pairing_start);
+K_WORK_DEFINE(bt_stop_adv_work, bt_stop_advertise);
 
 static const struct bt_data ad[] = {
 	BT_DATA_BYTES(BT_DATA_FLAGS, (BT_LE_AD_GENERAL | BT_LE_AD_NO_BREDR)),
@@ -80,13 +89,7 @@ static void pairing_complete(struct bt_conn *conn, bool bonded)
 
 	bt_dclk_info.conn_list[bt_dclk_info.num_paired] = conn;
 	bt_dclk_info.num_paired++;
-
-	// if (bt_dclk_info.num_paired > CONFIG_BT_MAX_CONN)
-	{
-		bt_pairing_stop();
-	}
 }
-
 
 static void setup_accept_list_cb(const struct bt_bond_info *info, void *user_data)
 {
@@ -129,19 +132,19 @@ static int setup_accept_list(uint8_t local_id)
 	return bond_cnt;
 }
 
-
-
 static void on_connected(struct bt_conn *conn, uint8_t err)
 {
 	if (err)
 	{
 		LOG_INF("Connection failed (err %u)\n", err);
-		k_work_submit(&advertise_DCLK_work);
+	//	k_work_submit(&bt_start_adv_work);
 		return;
 	}
 
 	LOG_INF("BT Connected\n");
 	bt_dclk_info.num_conn++;
+	// k_work_submit(&bt_stop_adv_work);
+
 	// bt_conn_set_security(conn, BT_SECURITY_L4);
 }
 
@@ -150,30 +153,37 @@ static void on_disconnected(struct bt_conn *conn, uint8_t reason)
 	LOG_INF("BT Disconnected (reason %u)\n", reason);
 	bt_dclk_info.num_conn--;
 	// advertize to try and reconnect
-	k_work_submit(&advertise_DCLK_work);
+	// k_work_submit(&bt_start_adv_work);
 }
 
 static void on_security_changed(struct bt_conn *conn, bt_security_t level, enum bt_security_err err)
 {
-	char addr[BT_ADDR_LE_STR_LEN];
+	// char addr[BT_ADDR_LE_STR_LEN];
 
-	bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
+	// bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
 
 	if (!err)
 	{
-		LOG_INF("Security changed: %s level %u\n", addr, level);
+		LOG_INF("Security changed");
 	}
 	else
 	{
-		LOG_INF("Security failed: %s level %u err %d\n", addr, level, err);
+		LOG_INF("Security failed");
 	}
 }
 
+void on_le_param_updated(struct bt_conn *conn, uint16_t interval, uint16_t latency, uint16_t timeout)
+{
+    double connection_interval = interval*1.25;         // in ms
+    uint16_t supervision_timeout = timeout*10;          // in ms
+    LOG_INF("Connection parameters updated: interval %.2f ms, latency %d intervals, timeout %d ms", connection_interval, latency, supervision_timeout);
+}
 
 static struct bt_conn_cb conn_callbacks = {
 	.connected = on_connected,
 	.disconnected = on_disconnected,
 	.security_changed = on_security_changed,
+	.le_param_updated = on_le_param_updated
 };
 
 void bt_stop_advertise(void)
@@ -185,6 +195,7 @@ void bt_stop_advertise(void)
 		LOG_INF("Falied to terminate advertising");
 	}
 	LOG_INF("Advertising terminated");
+	bt_dclk_info.pair_en = false;
 }
 
 void bt_start_advertise(struct k_work *work)
@@ -203,7 +214,7 @@ void bt_start_advertise(struct k_work *work)
 		LOG_INF("Acceptlist setup number  = %d \n", allowed_cnt);
 		// One shot advertizing due to bt_adv_param settings
 		// stops upon connection
-		err = bt_le_adv_start(BT_LE_ADV_FP_WHITELIST_BOTH, ad, ARRAY_SIZE(ad), NULL,0);
+		err = bt_le_adv_start(BT_LE_ADV_OPT_FILTER_CONN, ad, ARRAY_SIZE(ad), NULL, 0);
 
 		if (err)
 		{
@@ -257,7 +268,7 @@ static struct bt_conn_auth_cb auth_cb_display = {
 	.passkey_entry = passkey_entry,
 	.cancel = auth_cancel,
 	.pairing_confirm = auth_pairing,
-	.pairing_complete = pairing_complete,
+	//.pairing_complete = pairing_complete,
 };
 
 static void bt_pairing_start()
@@ -280,25 +291,13 @@ static void bt_pairing_start()
 	LOG_INF("Advertising with no Accept list \n");
 	// One shot advertizing due to bt_adv_param settings
 	// stops upon connection
-	err = bt_le_adv_start(BT_LE_ADV_FP_NO_WHITELIST, ad, ARRAY_SIZE(ad), NULL,0);
+	err = bt_le_adv_start(BT_LE_ADV_CONN_NAME, ad, ARRAY_SIZE(ad), NULL, 0);
 
 	if (err)
 	{
 		LOG_INF("Advertising failed to start (err %d)\n", err);
 		return;
 	}
-}
-
-static void bt_pairing_stop()
-{
-	LOG_INF("Pairing stop");
-	int err = bt_le_adv_stop();
-	if (err)
-	{
-		LOG_INF("Falied to terminate advertising");
-	}
-	LOG_INF("Advertising terminated");
-	bt_dclk_info.pair_en = false;
 }
 
 static void bas_notify(void)
@@ -314,10 +313,6 @@ static void bas_notify(void)
 
 	bt_bas_set_battery_level(bt_dclk_info.num_paired);
 }
-
-
-
-
 
 /*SHOT CLOCK*/
 
@@ -395,10 +390,38 @@ static void dclk_stop_cb(struct k_timer *timer_id)
 
 const uint16_t UPDATE_PERIOD = 1000;
 
+
+const struct device *dev;
+void interface_init()
+{
+	int ret;
+
+	dev = device_get_binding(LED0);
+	if (dev == NULL)
+	{
+		return;
+	}
+
+	ret = gpio_pin_configure(dev, PIN, GPIO_OUTPUT_ACTIVE | FLAGS);
+	if (ret < 0)
+	{
+		return;
+	}
+
+	gpio_pin_set(dev, PIN, 1);
+}
+
+
+
 void main(void)
 {
+
+
 	int err;
-	LOG_INF("hello");
+	LOG_INF("Hello! I'm a remote.");
+
+	interface_init();	
+
 	err = bt_enable(NULL);
 	if (err)
 	{
@@ -411,30 +434,44 @@ void main(void)
 		err = settings_load();
 		if (err)
 		{
-			return err;
+			return;
 		}
+		LOG_INF("Settings Loaded");
 
 		int bond_cnt = 0;
 
 		bt_foreach_bond(BT_ID_DEFAULT, &bt_count_bonds, &bond_cnt);
 
 		bt_dclk_info.num_paired = bond_cnt;
+		LOG_INF("Existing BT Bonds = %d", bond_cnt);
 	}
 
 	bt_conn_cb_register(&conn_callbacks);
 	bt_conn_auth_cb_register(&auth_cb_display);
 
-	// bt_start_advertise();
-
-	// bt_unpair(BT_ID_DEFAULT, BT_ADDR_LE_ANY);
-
 	bt_pairing_start();
+	//  if (bt_dclk_info.num_paired < 2)
+	//  {
+	//  	LOG_INF("No current bonds.\n Start pairing...");
+	//  	bt_pairing_start();
+	//  }
+	//  else
+	//  {
+	//  	LOG_INF("Advertising with accept list");
+	//  	k_work_submit(&bt_start_advertise);
+	//  }
 
-	dclk_start();
+	// dclk_start();
+
+	LOG_INF("Starting DCLK notifications.");
+	int led_val = 1;
 	while (1)
 	{
+
 		k_sleep(K_MSEC(UPDATE_PERIOD));
-		dclk_notify();
-		bas_notify();
+		gpio_pin_set(dev, PIN, led_val);
+		led_val ^= 1;
+		// dclk_notify();
+		// bas_notify();
 	}
 }
