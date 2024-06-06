@@ -1,3 +1,4 @@
+osource "c:/dev/dodgeballclock/boards/shields/*/Kconfig.defconfig"
 osource "c:/dev/dodgeballclock/_remotefirmware/boards/shields/*/Kconfig.defconfig"
 osource "C:/ncs/v1.6.1/nrf/boards/shields/*/Kconfig.defconfig"
 osource "C:/ncs/v1.6.1/zephyr/boards/shields/*/Kconfig.defconfig"

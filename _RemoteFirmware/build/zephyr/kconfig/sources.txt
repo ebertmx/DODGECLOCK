@@ -1,11 +1,11 @@
-C:\dev\DodgeballClock\_RemoteFirmware\boards\arm\dclk32\Kconfig.board
-C:\dev\DodgeballClock\_RemoteFirmware\boards\arm\dclk32\Kconfig.defconfig
 C:\dev\DodgeballClock\_RemoteFirmware\build\Kconfig\Kconfig.modules
 C:\dev\DodgeballClock\_RemoteFirmware\build\Kconfig\Kconfig.shield
 C:\dev\DodgeballClock\_RemoteFirmware\build\Kconfig\Kconfig.shield.defconfig
 C:\dev\DodgeballClock\_RemoteFirmware\build\Kconfig\Kconfig.soc
 C:\dev\DodgeballClock\_RemoteFirmware\build\Kconfig\Kconfig.soc.arch
 C:\dev\DodgeballClock\_RemoteFirmware\build\Kconfig\Kconfig.soc.defconfig
+C:\dev\DodgeballClock\boards\arm\dclk32\Kconfig.board
+C:\dev\DodgeballClock\boards\arm\dclk32\Kconfig.defconfig
 C:\ncs\v1.6.1\modules\debug\TraceRecorder\kernelports\Zephyr\Kconfig
 C:\ncs\v1.6.1\modules\debug\TraceRecorder\kernelports\Zephyr\streamports\Jlink_RTT\Kconfig
 C:\ncs\v1.6.1\modules\lib\matter\config\nrfconnect\chip-module\Kconfig

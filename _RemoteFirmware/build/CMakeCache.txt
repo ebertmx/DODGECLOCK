@@ -20,14 +20,14 @@ APPLICATION_BINARY_DIR:PATH=C:/dev/DodgeballClock/_RemoteFirmware/build
 //Application Source Directory
 APPLICATION_SOURCE_DIR:PATH=C:/dev/DodgeballClock/_RemoteFirmware
 
-//Selected board
-BOARD:STRING=dclk32
+//No help, variable specified on the command line.
+BOARD:UNINITIALIZED=dclk32
 
 //Path to a file.
-BOARD_DIR:PATH=C:/dev/DodgeballClock/_RemoteFirmware/boards/arm/dclk32
+BOARD_DIR:PATH=C:/dev/DodgeballClock/boards/arm/dclk32
 
 //No help, variable specified on the command line.
-BOARD_ROOT:UNINITIALIZED=c:/dev/dodgeballclock/_remotefirmware
+BOARD_ROOT:UNINITIALIZED=c:/dev/dodgeballclock;c:/dev/dodgeballclock/_remotefirmware
 
 //Path to a program.
 BOSSAC:FILEPATH=BOSSAC-NOTFOUND
@@ -289,6 +289,10 @@ CMAKE_STRIP:FILEPATH=C:/ncs/v1.6.1/toolchain/opt/bin/arm-none-eabi-strip.exe
 // Studio IDE projects all commands are done without /nologo.
 CMAKE_VERBOSE_MAKEFILE:BOOL=FALSE
 
+CONFIG_DEBUG_OPTIMIZATIONS:STRING=y
+
+CONFIG_DEBUG_THREAD_INFO:STRING=y
+
 //Path to a program.
 DTC:FILEPATH=C:/ncs/v1.6.1/toolchain/opt/bin/dtc.exe
 
@@ -429,6 +433,8 @@ CMAKE_CXX_FLAGS_MINSIZEREL-ADVANCED:INTERNAL=1
 CMAKE_CXX_FLAGS_RELEASE-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_CXX_FLAGS_RELWITHDEBINFO
 CMAKE_CXX_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CMAKE_C_COMPILER
+CMAKE_C_COMPILER-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_C_COMPILER_AR
 CMAKE_C_COMPILER_AR-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_C_COMPILER_RANLIB

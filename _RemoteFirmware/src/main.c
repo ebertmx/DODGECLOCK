@@ -41,23 +41,23 @@ static const struct bt_data ad[] = {
 				  BT_UUID_16_ENCODE(BT_UUID_BAS_VAL),
 				  BT_UUID_16_ENCODE(BT_UUID_DIS_VAL))};
 
-typedef struct bt_info
+typedef struct bt_dclk_conn
 {
 	/** number of active BLE connection */
 	uint8_t num_paired;
 	uint8_t num_conn;
-
-	struct bt_conn *conn_list[CONFIG_BT_MAX_CONN];
 	/** pairing status */
 	bool pair_en;
+	bt_addr_le_t addr_list[CONFIG_BT_MAX_CONN];
 
-} bt_info;
+} bt_dclk_conn;
 
-struct bt_info bt_dclk_info =
+struct bt_dclk_conn bt_dclk =
 	{
 		.num_conn = 0,
 		.num_paired = 0,
-		.pair_en = false};
+		.pair_en = false,
+};
 
 static void bt_count_bonds(const struct bt_bond_info *info, void *user_data)
 {
@@ -71,75 +71,106 @@ static void bt_count_bonds(const struct bt_bond_info *info, void *user_data)
 
 static void pairing_complete(struct bt_conn *conn, bool bonded)
 {
-	LOG_INF("Pairing Complete: %d", bonded);
+	char addr_str[BT_ADDR_LE_STR_LEN];
+	bt_addr_le_to_str(bt_conn_get_dst(conn), addr_str, sizeof(addr_str));
 
-	bt_dclk_info.conn_list[bt_dclk_info.num_paired] = conn;
-	bt_dclk_info.num_paired++;
-
-	// if (bt_dclk_info.num_paired > CONFIG_BT_MAX_CONN)
+	if (bonded)
 	{
-		bt_pairing_stop();
+
+		printk("Pairing Complete: %s", addr_str);
+		for (int j = 6; j > 0; --j)
+		{
+			printk("add to list %d\n", (bt_conn_get_dst(conn))->a.val[j]);
+		}
+
+		bt_dclk.addr_list[bt_dclk.num_paired] = *(bt_conn_get_dst(conn));
+		bt_dclk.num_paired++;
+		bt_stop_advertise();
+	}
+	else
+	{
+		printk("Pairing Failed %s", addr_str);
 	}
 }
 
-bool check_paired_list(struct bt_conn *conn)
+bool check_paired_list(const bt_addr_le_t addr)
 {
 
-	for (int i = bt_dclk_info.num_paired; i > 0; i--)
-	{
+	char addr_str[BT_ADDR_LE_STR_LEN];
+	bt_addr_le_to_str(&addr, addr_str, sizeof(addr_str));
+	printk("ADD 1 %s\n", addr_str);
 
-		if (conn == bt_dclk_info.conn_list[i])
+	for (int i = 0; i < bt_dclk.num_paired; i++)
+	{
+		bt_addr_le_to_str(&bt_dclk.addr_list[i], addr_str, sizeof(addr_str));
+		printk("ADD list %s\n", addr_str);
+
+		for (int j = 0; j <sizeof(addr.a.val); j++)
 		{
-			LOG_INF("Connection verified");
-			return true;
+			printk("addr %d : %d-%d\n", j, addr.a.val[j], bt_dclk.addr_list[i].a.val[j]);
+
+			if (addr.a.val[j] != bt_dclk.addr_list[i].a.val[j])
+			{
+				break;
+			}
+			if (j >= 5)
+			{
+				LOG_INF("Address in list");
+				return true;
+			}
 		}
 	}
-	LOG_INF("Connection not in paired list");
 
+	LOG_INF("Address not in list");
 	return false;
 }
 
+void connection_handler(struct k_work *work)
+{
+
+	// struct bt_conn_info *conn_info;
+	// bt_conn_get_info(conn, conn_info);
+}
+
+void disconnection_handler(struct k_work *work)
+{
+}
+
+K_WORK_DEFINE(connection_work, connection_handler);
+K_WORK_DEFINE(disconnection_work, disconnection_handler);
+
 static void connected(struct bt_conn *conn, uint8_t err)
 {
+
+	//BUG: If paired and reconnect, nothing stops advertising
 	if (err)
 	{
 		LOG_INF("Connection failed (err 0x%02x)\n", err);
 	}
 	else
 	{
-		bt_dclk_info.num_conn++;
-		LOG_INF("Connected\n : %d", bt_dclk_info.num_conn);
+		char addr_str[BT_ADDR_LE_STR_LEN];
 
-		if (!bt_dclk_info.pair_en)
+		if (err)
 		{
-			LOG_INF("Validating Connection");
+			printk("Connection failed (err %u)\n", err);
+			return;
+		}
+		bt_addr_le_to_str(bt_conn_get_dst(conn), addr_str, sizeof(addr_str));
 
-			if (!check_paired_list(conn))
-			{
-				LOG_INF("Disconnecting, not valid connection");
-				bt_conn_disconnect(conn, BT_HCI_ERR_AUTH_FAIL);
-			}
-			else
-			{
-				bt_stop_advertise();
-			}
-		}
-		else if (bt_dclk_info.num_paired >= CONFIG_BT_MAX_CONN)
-		{
-			LOG_INF("Disconnecting, max paired devices");
-			bt_conn_disconnect(conn, BT_HCI_ERR_AUTH_FAIL);
-		}
+		printk("Connected %s\n", addr_str);
 	}
 }
 
 static void disconnected(struct bt_conn *conn, uint8_t reason)
 {
-	LOG_INF("Disconnected (reason 0x%02x)\n", reason);
-	bt_dclk_info.num_conn--;
+	char addr_str[BT_ADDR_LE_STR_LEN];
 
-	if (bt_dclk_info.num_conn < bt_dclk_info.num_paired)
+	bt_addr_le_to_str(bt_conn_get_dst(conn), addr_str, sizeof(addr_str));
+
+	printk("Disconnected: %s (reason %u)\n", addr_str, reason);
+	if (check_paired_list(*(bt_conn_get_dst(conn))))
 	{
-		LOG_INF("Attempting to reestablish connection");
 		bt_start_advertise();
 	}
 }
@@ -153,6 +184,7 @@ void bt_stop_advertise(void)
 {
 
 	int err = bt_le_adv_stop();
+	bt_dclk.pair_en = false;
 	if (err)
 	{
 		LOG_INF("Falied to terminate advertising");
@@ -222,8 +254,8 @@ static void bt_pairing_start()
 {
 	LOG_INF("Pairing enabled");
 	bt_unpair(BT_ID_DEFAULT, BT_ADDR_LE_ANY);
-	bt_dclk_info.num_paired = 0;
-	bt_dclk_info.pair_en = true;
+	bt_dclk.num_paired = 0;
+	bt_dclk.pair_en = true;
 	bt_start_advertise();
 }
 
@@ -231,7 +263,7 @@ static void bt_pairing_stop()
 {
 	LOG_INF("Pairing disabled");
 	bt_stop_advertise();
-	bt_dclk_info.pair_en = false;
+	bt_dclk.pair_en = false;
 }
 
 static void bas_notify(void)
@@ -245,7 +277,7 @@ static void bas_notify(void)
 		battery_level = 100U;
 	}
 
-	bt_bas_set_battery_level(bt_dclk_info.num_paired);
+	bt_bas_set_battery_level(bt_dclk.num_paired);
 }
 
 /*SHOT CLOCK*/
@@ -340,14 +372,14 @@ void main(void)
 		err = settings_load();
 		if (err)
 		{
-			return err;
+			return;
 		}
 
 		int bond_cnt = 0;
 
 		bt_foreach_bond(BT_ID_DEFAULT, &bt_count_bonds, &bond_cnt);
 
-		bt_dclk_info.num_paired = bond_cnt;
+		bt_dclk.num_paired = bond_cnt;
 	}
 
 	bt_conn_cb_register(&conn_callbacks);
@@ -359,11 +391,11 @@ void main(void)
 
 	bt_pairing_start();
 
-	dclk_start();
+	// dclk_start();
 	while (1)
 	{
 		k_sleep(K_MSEC(UPDATE_PERIOD));
-		dclk_notify();
-		bas_notify();
+		// dclk_notify();
+		// bas_notify();
 	}
 }
