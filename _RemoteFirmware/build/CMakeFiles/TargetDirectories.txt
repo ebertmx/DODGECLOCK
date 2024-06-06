@@ -279,9 +279,8 @@ C:/dev/DodgeballClock/_RemoteFirmware/build/modules/open-amp/CMakeFiles/edit_cac
 C:/dev/DodgeballClock/_RemoteFirmware/build/modules/open-amp/CMakeFiles/rebuild_cache.dir
 C:/dev/DodgeballClock/_RemoteFirmware/build/modules/loramac-node/CMakeFiles/edit_cache.dir
 C:/dev/DodgeballClock/_RemoteFirmware/build/modules/loramac-node/CMakeFiles/rebuild_cache.dir
-C:/dev/DodgeballClock/_RemoteFirmware/build/modules/segger/CMakeFiles/rebuild_cache.dir
-C:/dev/DodgeballClock/_RemoteFirmware/build/modules/segger/CMakeFiles/modules__segger.dir
 C:/dev/DodgeballClock/_RemoteFirmware/build/modules/segger/CMakeFiles/edit_cache.dir
+C:/dev/DodgeballClock/_RemoteFirmware/build/modules/segger/CMakeFiles/rebuild_cache.dir
 C:/dev/DodgeballClock/_RemoteFirmware/build/modules/tinycbor/CMakeFiles/edit_cache.dir
 C:/dev/DodgeballClock/_RemoteFirmware/build/modules/tinycbor/CMakeFiles/rebuild_cache.dir
 C:/dev/DodgeballClock/_RemoteFirmware/build/modules/tinycrypt/CMakeFiles/edit_cache.dir
