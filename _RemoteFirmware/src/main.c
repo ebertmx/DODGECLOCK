@@ -29,10 +29,21 @@
 
 LOG_MODULE_REGISTER(main_app, LOG_LEVEL_INF);
 
+#define MY_STACK_SIZE 1024
+#define MY_PRIORITY 5
+
+void bt_connection_manager(void *, void *, void *);
+
+K_THREAD_STACK_DEFINE(my_stack_area, MY_STACK_SIZE);
+struct k_thread my_thread_data;
+
+k_tid_t my_tid;
+
 static void bt_pairing_stop();
 static void bt_pairing_start();
 void bt_stop_advertise();
 void bt_start_advertise();
+bool check_paired_list(const bt_addr_le_t addr);
 
 static const struct bt_data ad[] = {
 	BT_DATA_BYTES(BT_DATA_FLAGS, (BT_LE_AD_GENERAL | BT_LE_AD_NO_BREDR)),
@@ -59,6 +70,84 @@ struct bt_dclk_conn bt_dclk =
 		.pair_en = false,
 };
 
+struct k_msgq conn_msgq;
+enum bt_conn_message_type_t
+{
+	CONN,
+	DISCONN,
+	PAIR,
+	BOND,
+
+};
+
+struct bt_conn_message_t
+{
+	enum bt_conn_message_type_t type;
+	struct bt_conn *conn;
+};
+
+void bt_connection_manager(void *a, void *b, void *c)
+{
+	printk("bt connection manager starting");
+	bt_pairing_start();
+
+	struct bt_conn_message_t data;
+	char addr_str[BT_ADDR_LE_STR_LEN];
+	while (1)
+	{
+		/* get a data item */
+		k_msgq_get(&conn_msgq, &data, K_FOREVER);
+
+		struct bt_conn *conn = data.conn;
+
+		switch (data.type)
+		{
+		case CONN:
+
+			bt_addr_le_to_str(bt_conn_get_dst(conn), addr_str, sizeof(addr_str));
+			printk("Connected %s\n", addr_str);
+
+			if (!check_paired_list(*(bt_conn_get_dst(conn))))
+			{
+				if (bt_dclk.pair_en)
+				{
+					printk("Allow connection for pairing");
+				}
+				else
+				{
+					bt_conn_disconnect(conn, BT_HCI_ERR_REMOTE_USER_TERM_CONN);
+				}
+				// printk("Connection Terminated; Device not in list\n Pairing = %d", bt_dclk.pair_en);
+			}
+
+			break;
+		case DISCONN:
+
+			bt_addr_le_to_str(bt_conn_get_dst(conn), addr_str, sizeof(addr_str));
+			printk("Disconnected %s\n", addr_str);
+
+			if (check_paired_list(*(bt_conn_get_dst(conn))))
+			{
+				bt_start_advertise();
+			}
+
+			bt_conn_unref(conn);
+
+			break;
+
+		case PAIR:
+
+			break;
+
+		case BOND:
+
+			break;
+		default:
+			break;
+		}
+	}
+}
+
 static void bt_count_bonds(const struct bt_bond_info *info, void *user_data)
 {
 	int *bond_cnt = user_data;
@@ -68,6 +157,119 @@ static void bt_count_bonds(const struct bt_bond_info *info, void *user_data)
 	}
 	(*bond_cnt)++;
 }
+
+
+
+bool check_paired_list(const bt_addr_le_t addr)
+{
+
+	// char addr_str[BT_ADDR_LE_STR_LEN];
+	// bt_addr_le_to_str(&addr, addr_str, sizeof(addr_str));
+	// printk("ADD 1 %s\n", addr_str);
+
+	for (int i = 0; i < bt_dclk.num_paired; i++)
+	{
+		// bt_addr_le_to_str(&bt_dclk.addr_list[i], addr_str, sizeof(addr_str));
+		// printk("ADD list %s\n", addr_str);
+
+		for (int j = 0; j < sizeof(addr.a.val); j++)
+		{
+			// printk("addr %d : %d-%d\n", j, addr.a.val[j], bt_dclk.addr_list[i].a.val[j]);
+
+			if (addr.a.val[j] != bt_dclk.addr_list[i].a.val[j])
+			{
+				break;
+			}
+			if (j >= 5)
+			{
+				printk("Address in list\n");
+				return true;
+			}
+		}
+	}
+
+	printk("Address not in list\n");
+	return false;
+}
+
+void bt_stop_advertise(void)
+{
+	int err = bt_le_adv_stop();
+	bt_dclk.pair_en = false;
+	if (err)
+	{
+		printk("Falied to terminate advertising\n");
+	}
+	printk("Advertising terminated\n");
+}
+
+void bt_start_advertise(void)
+{
+	int err;
+
+	// printk("Bluetooth initialized\n");
+
+	err = bt_le_adv_start(BT_LE_ADV_CONN_NAME, ad, ARRAY_SIZE(ad), NULL, 0);
+	if (err)
+	{
+		printk("Advertising failed to start (err %d)\n", err);
+		return;
+	}
+
+	printk("Advertising successfully started\n");
+}
+
+static void connected(struct bt_conn *conn, uint8_t err)
+{
+
+	// BUG: If paired and reconnect, nothing stops advertising
+	if (err)
+	{
+		printk("Connection failed (err 0x%02x)\n", err);
+	}
+	else
+	{
+		bt_conn_ref(conn);
+		printk("Connecting\n");
+		struct bt_conn_message_t data;
+		data.type = CONN;
+		data.conn = conn;
+
+		if (k_msgq_put(&conn_msgq, &data, K_NO_WAIT))
+		{
+			bt_conn_unref(conn);
+		}
+	}
+}
+
+static void disconnected(struct bt_conn *conn, uint8_t reason)
+{
+	char addr_str[BT_ADDR_LE_STR_LEN];
+
+	bt_addr_le_to_str(bt_conn_get_dst(conn), addr_str, sizeof(addr_str));
+
+	printk("Disconnecting: %s (reason %u)\n", addr_str, reason);
+	struct bt_conn_message_t data;
+	data.type = DISCONN;
+	data.conn = conn;
+
+	if (k_msgq_put(&conn_msgq, &data, K_NO_WAIT))
+	{
+		bt_conn_unref(conn);
+	}
+}
+
+void security_change (struct bt_conn *conn, bt_security_t level, enum bt_security_err err)
+{
+	printk("security Level = %d\n", level );
+}
+
+static struct bt_conn_cb conn_callbacks = {
+	.connected = connected,
+	.disconnected = disconnected,
+	.security_changed = security_change,
+};
+
 
 static void pairing_complete(struct bt_conn *conn, bool bonded)
 {
@@ -93,143 +295,29 @@ static void pairing_complete(struct bt_conn *conn, bool bonded)
 	}
 }
 
-bool check_paired_list(const bt_addr_le_t addr)
-{
-
-	char addr_str[BT_ADDR_LE_STR_LEN];
-	bt_addr_le_to_str(&addr, addr_str, sizeof(addr_str));
-	printk("ADD 1 %s\n", addr_str);
-
-	for (int i = 0; i < bt_dclk.num_paired; i++)
-	{
-		bt_addr_le_to_str(&bt_dclk.addr_list[i], addr_str, sizeof(addr_str));
-		printk("ADD list %s\n", addr_str);
-
-		for (int j = 0; j <sizeof(addr.a.val); j++)
-		{
-			printk("addr %d : %d-%d\n", j, addr.a.val[j], bt_dclk.addr_list[i].a.val[j]);
-
-			if (addr.a.val[j] != bt_dclk.addr_list[i].a.val[j])
-			{
-				break;
-			}
-			if (j >= 5)
-			{
-				LOG_INF("Address in list");
-				return true;
-			}
-		}
-	}
-
-	LOG_INF("Address not in list");
-	return false;
-}
-
-void connection_handler(struct k_work *work)
-{
-
-	// struct bt_conn_info *conn_info;
-	// bt_conn_get_info(conn, conn_info);
-}
-
-void disconnection_handler(struct k_work *work)
-{
-}
-
-K_WORK_DEFINE(connection_work, connection_handler);
-K_WORK_DEFINE(disconnection_work, disconnection_handler);
-
-static void connected(struct bt_conn *conn, uint8_t err)
-{
-
-	//BUG: If paired and reconnect, nothing stops advertising
-	if (err)
-	{
-		LOG_INF("Connection failed (err 0x%02x)\n", err);
-	}
-	else
-	{
-		char addr_str[BT_ADDR_LE_STR_LEN];
-
-		if (err)
-		{
-			printk("Connection failed (err %u)\n", err);
-			return;
-		}
-		bt_addr_le_to_str(bt_conn_get_dst(conn), addr_str, sizeof(addr_str));
-
-		printk("Connected %s\n", addr_str);
-	}
-}
-
-static void disconnected(struct bt_conn *conn, uint8_t reason)
-{
-	char addr_str[BT_ADDR_LE_STR_LEN];
-
-	bt_addr_le_to_str(bt_conn_get_dst(conn), addr_str, sizeof(addr_str));
-
-	printk("Disconnected: %s (reason %u)\n", addr_str, reason);
-	if (check_paired_list(*(bt_conn_get_dst(conn))))
-	{
-		bt_start_advertise();
-	}
-}
-
-static struct bt_conn_cb conn_callbacks = {
-	.connected = connected,
-	.disconnected = disconnected,
-};
-
-void bt_stop_advertise(void)
-{
-
-	int err = bt_le_adv_stop();
-	bt_dclk.pair_en = false;
-	if (err)
-	{
-		LOG_INF("Falied to terminate advertising");
-	}
-	LOG_INF("Advertising terminated");
-}
-
-void bt_start_advertise(void)
-{
-	int err;
-
-	// LOG_INF("Bluetooth initialized\n");
-
-	err = bt_le_adv_start(BT_LE_ADV_CONN_NAME, ad, ARRAY_SIZE(ad), NULL, 0);
-	if (err)
-	{
-		LOG_INF("Advertising failed to start (err %d)\n", err);
-		return;
-	}
-
-	LOG_INF("Advertising successfully started\n");
-}
-
 static void auth_pairing(struct bt_conn *conn)
 {
 	char addr[BT_ADDR_LE_STR_LEN];
 	bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
 	int err = bt_conn_auth_pairing_confirm(conn);
-	LOG_INF("Pairing Authorized %d: %s\n", err, addr);
+	printk("Pairing Authorized %d: %s\n", err, addr);
 }
 
 static void passkey_entry(struct bt_conn *conn)
 {
-	LOG_INF("Sending entry passkey = %d", 123456);
+	printk("Sending entry passkey = %d", 123456);
 	bt_conn_auth_passkey_entry(conn, 123456);
 }
 
 void passkey_display(struct bt_conn *conn, unsigned int passkey)
 {
-	LOG_INF("Controller passkey = %d", passkey);
+	printk("Controller passkey = %d", passkey);
 }
 
 void passkey_confirm(struct bt_conn *conn, unsigned int passkey)
 {
-	LOG_INF("Confirm Passkey = %d", passkey);
+	printk("Confirm Passkey = %d\n", passkey);
+	
 	bt_conn_auth_passkey_confirm(conn);
 }
 static void auth_cancel(struct bt_conn *conn)
@@ -238,7 +326,7 @@ static void auth_cancel(struct bt_conn *conn)
 
 	bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
 
-	LOG_INF("Pairing cancelled: %s\n", addr);
+	printk("Pairing cancelled: %s\n", addr);
 }
 
 static struct bt_conn_auth_cb auth_cb_display = {
@@ -252,7 +340,7 @@ static struct bt_conn_auth_cb auth_cb_display = {
 
 static void bt_pairing_start()
 {
-	LOG_INF("Pairing enabled");
+	printk("Pairing enabled");
 	bt_unpair(BT_ID_DEFAULT, BT_ADDR_LE_ANY);
 	bt_dclk.num_paired = 0;
 	bt_dclk.pair_en = true;
@@ -261,7 +349,7 @@ static void bt_pairing_start()
 
 static void bt_pairing_stop()
 {
-	LOG_INF("Pairing disabled");
+	printk("Pairing disabled");
 	bt_stop_advertise();
 	bt_dclk.pair_en = false;
 }
@@ -320,7 +408,7 @@ static void dclk_resume()
 	}
 	else
 	{
-		// LOG_INF("Clock is not is pause state");
+		// printk("Clock is not is pause state");
 		k_timer_start(&dclk_timer, K_MSEC(CLOCK_MAX_VALUE), K_NO_WAIT);
 	}
 	dclk_state = RUN;
@@ -359,11 +447,11 @@ const uint16_t UPDATE_PERIOD = 1000;
 void main(void)
 {
 	int err;
-	LOG_INF("hello");
+	printk("hello");
 	err = bt_enable(NULL);
 	if (err)
 	{
-		LOG_INF("Bluetooth init failed (err %d)\n", err);
+		printk("Bluetooth init failed (err %d)\n", err);
 		return;
 	}
 
@@ -389,7 +477,16 @@ void main(void)
 
 	// bt_unpair(BT_ID_DEFAULT, BT_ADDR_LE_ANY);
 
-	bt_pairing_start();
+	char my_msgq_buffer[10 * sizeof(struct bt_conn_message_t)];
+
+	k_msgq_init(&conn_msgq, my_msgq_buffer, sizeof(struct bt_conn_message_t), 10);
+
+	k_tid_t my_tid =
+		k_thread_create(&my_thread_data, my_stack_area,
+						K_THREAD_STACK_SIZEOF(my_stack_area),
+						bt_connection_manager,
+						NULL, NULL, NULL,
+						MY_PRIORITY, 0, K_NO_WAIT);
 
 	// dclk_start();
 	while (1)
