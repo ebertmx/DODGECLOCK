@@ -29,7 +29,7 @@
 
 LOG_MODULE_REGISTER(main_app, LOG_LEVEL_INF);
 
-#define MY_STACK_SIZE 2048
+#define MY_STACK_SIZE 3000
 #define MY_PRIORITY 5
 
 void bt_connection_manager(void *, void *, void *);
@@ -39,12 +39,6 @@ struct k_thread my_thread_data;
 
 k_tid_t my_tid;
 
-static void bt_pairing_stop();
-static void bt_pairing_start();
-void bt_stop_advertise();
-void bt_start_advertise();
-bool check_paired_list(const bt_addr_le_t addr);
-
 static const struct bt_data ad[] = {
 	BT_DATA_BYTES(BT_DATA_FLAGS, (BT_LE_AD_GENERAL | BT_LE_AD_NO_BREDR)),
 	BT_DATA_BYTES(BT_DATA_UUID16_ALL,
@@ -52,26 +46,17 @@ static const struct bt_data ad[] = {
 				  BT_UUID_16_ENCODE(BT_UUID_BAS_VAL),
 				  BT_UUID_16_ENCODE(BT_UUID_DIS_VAL))};
 
-typedef struct bt_dclk_conn
+typedef struct bt_dclk_dev
 {
-	/** number of active BLE connection */
-	uint8_t num_paired;
-	uint8_t num_conn;
-	/** pairing status */
-	bool pair_en;
-	bt_addr_le_t addr_list[CONFIG_BT_MAX_CONN];
+	uint8_t IS_BONDED;
+	uint8_t IS_CONNECTED;
+	struct bt_conn *conn;
+	bt_addr_le_t addr;
 
-} bt_dclk_conn;
-
-struct bt_dclk_conn bt_dclk =
-	{
-		.num_conn = 0,
-		.num_paired = 0,
-		.pair_en = false,
-};
+} bt_dclk_dev;
 
 struct k_msgq conn_msgq;
-enum bt_conn_message_type_t
+enum bt_message_type_t
 {
 	CONN,
 	DISCONN,
@@ -80,73 +65,133 @@ enum bt_conn_message_type_t
 
 };
 
-struct bt_conn_message_t
+struct bt_message_t
 {
-	enum bt_conn_message_type_t type;
+	enum bt_message_type_t type;
 	struct bt_conn *conn;
 };
 
+static void bt_pairing_stop();
+static void bt_pairing_start();
+void bt_stop_advertise();
+void bt_start_advertise();
+bool bt_compair_addr(bt_addr_le_t addr1, bt_addr_le_t addr2);
+int bt_check_dev_list(struct bt_dclk_dev dclk_dev[], int len, bt_addr_le_t addr);
+
+static void bt_force_disconnect(struct bt_conn *conn)
+{
+	printk("Force disconnect\n");
+	int err = bt_conn_disconnect(conn, BT_HCI_ERR_REMOTE_USER_TERM_CONN);
+	if (err)
+	{
+		printk("Failed to disconnect: %d\n", err);
+	}
+	else
+	{
+		bt_conn_unref(conn);
+	}
+}
+
+bool clear_dclk_dev(struct bt_dclk_dev devs[], int len)
+{
+	for (int i = 0; i < len; i++)
+	{
+		devs[i].conn = NULL;
+		devs[i].IS_CONNECTED = 0;
+		devs[i].IS_BONDED = 0;
+	}
+}
+
 void bt_connection_manager(void *a, void *b, void *c)
 {
-	printk("bt connection manager starting\n");
-	bt_pairing_start();
-	struct bt_conn_message_t data;
+
+	printk("bt_connection_manager starting\n");
+	int err;
+	struct bt_dclk_dev dclk_dev[CONFIG_BT_MAX_PAIRED];
+
+	uint8_t NUM_DEVS = CONFIG_BT_MAX_PAIRED;
+	clear_dclk_dev(dclk_dev, NUM_DEVS);
+	bool pair_enabled = true;
+
+	struct bt_message_t data;
 	char addr_str[BT_ADDR_LE_STR_LEN];
+
+	bt_pairing_start();
+
 	while (1)
 	{
 		/* get a data item */
 		k_msgq_get(&conn_msgq, &data, K_FOREVER);
 
 		struct bt_conn *conn = data.conn;
+		printk("\n!!Event = %d!!\n", data.type);
+		bt_addr_le_to_str(bt_conn_get_dst(conn), addr_str, sizeof(addr_str));
+
+		printk("Device Addr: %s\n", addr_str);
+
+		int dev_index = bt_check_dev_list(dclk_dev, NUM_DEVS, *(bt_conn_get_dst(conn)));
+		printk("Device index = %d\n", dev_index);
+
+		printk("Pairing status = %d\n", pair_enabled);
 
 		switch (data.type)
 		{
 		case CONN:
 
-			bt_addr_le_to_str(bt_conn_get_dst(conn), addr_str, sizeof(addr_str));
-			printk("Connected %s\n", addr_str);
+			printk("Connected\n");
 
-			if (!check_paired_list(*(bt_conn_get_dst(conn))))
+			////
+
+			if (dev_index >= 0)
 			{
-				if (bt_dclk.pair_en)
+				printk("Device in list. Allow connection\n");
+				dclk_dev[dev_index].IS_CONNECTED = true;
+			}
+			else
+			{
+				if (pair_enabled)
 				{
 					printk("Allow connection for pairing\n");
 				}
 				else
 				{
-					printk("Device not in list\n");
-					bt_conn_disconnect(conn, BT_HCI_ERR_REMOTE_USER_TERM_CONN);
+					bt_force_disconnect(conn);
 				}
 			}
 
 			break;
 		case DISCONN:
 
-			bt_addr_le_to_str(bt_conn_get_dst(conn), addr_str, sizeof(addr_str));
-			printk("Disconnected %s\n", addr_str);
+			printk("Disconnected\n");
 
-			if (check_paired_list(*(bt_conn_get_dst(conn))))
+			if (dev_index >= 0)
 			{
+				dclk_dev[dev_index].IS_CONNECTED = false;
 				bt_start_advertise();
 			}
-
-			bt_conn_unref(conn);
+			else
+			{
+				bt_conn_unref(conn);
+			}
 
 			break;
 
 		case SECURITY:
 
-			if (!check_paired_list(*(bt_conn_get_dst(conn))))
+			if (dev_index >= 0)
 			{
-				if (!bt_dclk.pair_en)
+				printk("Security change complete");
+			}
+			else
+			{
+				if (pair_enabled)
 				{
-					printk("Security change canceled. Pairing NOT enabled.\n");
-					bt_conn_disconnect(conn, BT_HCI_ERR_REMOTE_USER_TERM_CONN);
-					bt_conn_unref(conn);
+					printk("Pairing enabled. Security change complete\n");
 				}
 				else
 				{
-					printk("Security change complete\n");
+					printk("Pairing NOT enabled. Security change canceled. \n");
+					bt_force_disconnect(conn);
 				}
 			}
 
@@ -154,70 +199,84 @@ void bt_connection_manager(void *a, void *b, void *c)
 
 		case BOND:
 
-			if (!bt_dclk.pair_en)
+			if (dev_index >= 0)
+			{
+				printk("Device already bonded\n");
+				break;
+			}
+
+			if (pair_enabled)
+			{
+
+				printk("Bonding complete\n");
+
+				for (int i = 0; i < NUM_DEVS; i++)
+				{
+					if (dclk_dev[i].IS_BONDED == false)
+					{
+						dclk_dev[i].conn = conn;
+						dclk_dev[i].addr = *(bt_conn_get_dst(conn));
+						dclk_dev[i].IS_BONDED = 1;
+						dclk_dev[i].IS_CONNECTED = 1;
+						printk("Device added to list\n");
+						break;
+					}
+				}
+
+				bt_stop_advertise();
+			}
+			else
 			{
 				printk("Bonding canceled. Pairing NOT enabled\n");
 				bt_conn_disconnect(conn, BT_HCI_ERR_REMOTE_USER_TERM_CONN);
 				bt_conn_unref(conn);
 			}
-
-			printk("Bonding complete: %s\n", addr_str);
-
-			bt_dclk.addr_list[bt_dclk.num_paired] = *(bt_conn_get_dst(conn));
-			bt_dclk.num_paired++;
-			bt_stop_advertise();
-
 			break;
 		default:
 			break;
 		}
-
-		if (bt_dclk.num_conn == bt_dclk.num_paired && !bt_dclk.pair_en)
-		{
-			printk("All devices connected\n");
-			bt_stop_advertise();
-		}
 	}
 }
 
-static void bt_count_bonds(const struct bt_bond_info *info, void *user_data)
-{
-	int *bond_cnt = user_data;
-	if ((*bond_cnt) < 0)
-	{
-		return;
-	}
-	(*bond_cnt)++;
-}
+// static void add_bt_dclk_dev(dclk_dev *devs, size_t len)
 
-bool check_paired_list(const bt_addr_le_t addr)
+int bt_check_dev_list(struct bt_dclk_dev dclk_dev[], int len, bt_addr_le_t addr)
 {
-	for (int i = 0; i < bt_dclk.num_paired; i++)
+	// printk("Compare %d\n", len);
+
+	if (dclk_dev[0].conn != NULL)
 	{
 
-		for (int j = 0; j < sizeof(addr.a.val); j++)
+		for (int i = 0; i < len; i++)
 		{
-
-			if (addr.a.val[j] != bt_dclk.addr_list[i].a.val[j])
+			if (bt_compair_addr(dclk_dev[i].addr, addr))
 			{
-				break;
-			}
-			if (j >= 5)
-			{
-				printk("Address in list\n");
-				return true;
+				//	printk("addr match\n");
+				return i;
 			}
 		}
 	}
 
-	printk("Address not in list\n");
-	return false;
+	return -1;
+}
+bool bt_compair_addr(bt_addr_le_t addr1, bt_addr_le_t addr2)
+{
+	// printk("add_size = %d\n",sizeof(addr1.a.val));
+	for (int i = 0; i < sizeof(addr1.a.val); i++)
+	{
+		// printk("%d     %d\n", addr1.a.val[i], addr2.a.val[i]);
+
+		if (addr1.a.val[i] != addr2.a.val[i])
+		{
+			return false;
+		}
+	}
+	return true;
 }
 
 void bt_stop_advertise(void)
 {
 	int err = bt_le_adv_stop();
-	bt_dclk.pair_en = false;
 	if (err)
 	{
 		printk("Falied to terminate advertising\n");
@@ -228,7 +287,7 @@ void bt_stop_advertise(void)
 void bt_start_advertise(void)
 {
 	int err;
-
+	printk("Starting BT advertising\n");
 	err = bt_le_adv_start(BT_LE_ADV_CONN_NAME, ad, ARRAY_SIZE(ad), NULL, 0);
 	if (err)
 	{
@@ -248,16 +307,16 @@ static void connected(struct bt_conn *conn, uint8_t err)
 	else
 	{
 		bt_conn_ref(conn);
-		printk("Connecting\n");
+		// printk("Connecting\n");
 
-		struct bt_conn_message_t data;
+		struct bt_message_t data;
 
 		data.type = CONN;
 		data.conn = conn;
 
 		if (k_msgq_put(&conn_msgq, &data, K_NO_WAIT))
 		{
-			bt_conn_unref(conn);
+			// bt_conn_unref(conn);
 		}
 	}
 }
@@ -268,8 +327,8 @@ static void disconnected(struct bt_conn *conn, uint8_t reason)
 
 	bt_addr_le_to_str(bt_conn_get_dst(conn), addr_str, sizeof(addr_str));
 
-	printk("Disconnecting: %s (reason %u)\n", addr_str, reason);
-	struct bt_conn_message_t data;
+	// printk("Disconnecting: %s (reason %u)\n", addr_str, reason);
+	struct bt_message_t data;
 	data.type = DISCONN;
 	data.conn = conn;
 
@@ -288,9 +347,9 @@ void security_change(struct bt_conn *conn, bt_security_t level, enum bt_security
 	else
 	{
 
-		printk("Security set. Level = %d\n", level);
+		// printk("Security set. Level = %d\n", level);
 
-		struct bt_conn_message_t data;
+		struct bt_message_t data;
 		data.type = SECURITY;
 		data.conn = conn;
 
@@ -311,11 +370,11 @@ static void pairing_complete(struct bt_conn *conn, bool bonded)
 {
 	char addr_str[BT_ADDR_LE_STR_LEN];
 	bt_addr_le_to_str(bt_conn_get_dst(conn), addr_str, sizeof(addr_str));
-	printk("Pairing; bond = %d\n", bonded);
+	// printk("Pairing; bond = %d\n", bonded);
 	if (bonded)
 	{
-		printk("Pairing in progress %s\n", addr_str);
-		struct bt_conn_message_t data;
+		// printk("Pairing in progress %s\n", addr_str);
+		struct bt_message_t data;
 		data.type = BOND;
 		data.conn = conn;
 
@@ -376,8 +435,6 @@ static void bt_pairing_start()
 {
 	printk("Pairing enabled\n");
 	bt_unpair(BT_ID_DEFAULT, BT_ADDR_LE_ANY);
-	bt_dclk.num_paired = 0;
-	bt_dclk.pair_en = true;
 	bt_start_advertise();
 }
 
@@ -385,7 +442,6 @@ static void bt_pairing_stop()
 {
 	printk("Pairing disabled\n");
 	bt_stop_advertise();
-	bt_dclk.pair_en = false;
 }
 
 static void bas_notify(void)
@@ -399,7 +455,7 @@ static void bas_notify(void)
 		battery_level = 100U;
 	}
 
-	bt_bas_set_battery_level(bt_dclk.num_paired);
+	bt_bas_set_battery_level(69);
 }
 
 /*SHOT CLOCK*/
@@ -501,9 +557,8 @@ void main(void)
 	bt_conn_cb_register(&conn_callbacks);
 	bt_conn_auth_cb_register(&auth_cb_display);
 
-
-	char my_msgq_buffer[10 * sizeof(struct bt_conn_message_t)];
-	k_msgq_init(&conn_msgq, my_msgq_buffer, sizeof(struct bt_conn_message_t), 10);
+	char my_msgq_buffer[10 * sizeof(struct bt_message_t)];
+	k_msgq_init(&conn_msgq, my_msgq_buffer, sizeof(struct bt_message_t), 10);
 
 	k_tid_t my_tid =
 		k_thread_create(&my_thread_data, my_stack_area,
